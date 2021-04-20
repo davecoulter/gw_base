@@ -108,6 +108,8 @@ hp.mollview(m, nest=True, title="Mollview image NESTED", hold=True)
 fig.savefig("mollview_test3.png")
 plt.close('all')
 
+print("Hello World")
+
 '''
 All healpy routines assume RING ordering, in fact as soon as you read a map with read_map, even if it was stored as 
 NESTED, it is transformed to RING. However, you can work in NESTED ordering passing the nest=True argument to most 

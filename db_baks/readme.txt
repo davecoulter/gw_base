@@ -1,0 +1,1 @@
+In this directory will go your database back ups that will have a file extension of *.sql

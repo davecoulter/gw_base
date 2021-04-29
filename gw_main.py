@@ -7,6 +7,23 @@ from mpl_toolkits.basemap import Basemap
 import healpy as hp
 from ligo.skymap import distance
 import numpy as np
+from database_methods import *
+
+
+
+print("*** DEBUG ***\n")
+
+# test out database methods
+detector_select = '''
+SELECT id, Name FROM Detector;
+'''
+result = query_db([detector_select])[0]
+
+for r in result:
+    print(r)
+
+print("\n*** DEBUG ***\n")
+
 
 
 # DC: Tutorial code and text taken from: https://healpy.readthedocs.io/en/latest/tutorial.html

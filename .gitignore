@@ -19,3 +19,9 @@ bin-release/
 .idea
 .env
 *.png
+*.sql
+*.ini
+__pycache__/
+
+docker_mysql/8.0/*
+!docker_mysql/8.0/readme.txt

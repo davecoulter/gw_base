@@ -21,7 +21,7 @@ import healpy as hp
 
 # Map won't show because not in jupyter, seek help
 print("Reading GW190425 Map")
-hpx_path = "GW190425_PublicationSamples_flattened.fits.gz"
+hpx_path = "gw_skymaps/GW190425_PublicationSamples_flattened.fits.gz"
 wmap_map_I = hp.read_map(hpx_path)
 orig_prob, orig_distmu, orig_distsigma, orig_distnorm, header_gen = hp.read_map(hpx_path, field=(0, 1, 2, 3), h=True)
 # By default, read_map loads the first column, for reading other columns you can specify the field keyword.

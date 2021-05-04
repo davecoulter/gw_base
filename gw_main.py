@@ -11,18 +11,18 @@ from database_methods import *
 
 
 
-print("*** DEBUG ***\n")
-
-# test out database methods
-detector_select = '''
-SELECT id, Name FROM Detector;
-'''
-result = query_db([detector_select])[0]
-
-for r in result:
-    print(r)
-
-print("\n*** DEBUG ***\n")
+# print("*** DEBUG ***\n")
+#
+# # test out database methods
+# detector_select = '''
+# SELECT id, Name FROM Detector;
+# '''
+# result = query_db([detector_select])[0]
+#
+# for r in result:
+#     print(r)
+#
+# print("\n*** DEBUG ***\n")
 
 
 

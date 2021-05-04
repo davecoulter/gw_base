@@ -22,6 +22,7 @@ bin-release/
 *.sql
 *.ini
 __pycache__/
+*.pkl
 
 docker_mysql/8.0/*
 !docker_mysql/8.0/readme.txt

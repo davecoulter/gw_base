@@ -1,0 +1,1 @@
+This directory contains python pickles for a GW event.

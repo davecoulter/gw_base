@@ -17,6 +17,7 @@ services:
           CONDA_PROMPT_MODIFIER: (base)
           PROJ_LIB: /opt/conda/share/proj
           CONDA_PREFIX: /opt/conda
+          DB_CONFIG: ${REL_DB_CONFIG}
     db:
       container_name: gw_base_db
       image: "mysql:8.0.16"

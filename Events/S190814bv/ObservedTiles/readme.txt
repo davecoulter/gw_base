@@ -1,0 +1,1 @@
+This directory contains observed tiles for a GW event.

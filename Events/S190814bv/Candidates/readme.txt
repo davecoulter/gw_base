@@ -1,0 +1,1 @@
+This directory contains candidates for a GW event.

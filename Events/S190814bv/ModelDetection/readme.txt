@@ -1,0 +1,1 @@
+This directory contains model efficiency output for a GW event.

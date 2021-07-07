@@ -151,11 +151,11 @@ if True:
 
 ### SKY MAP/HISTOGRAM
 if True:
-    map2 = Basemap(width=12000000,height=9000000,projection='lcc',
+    map2 = Basemap(width=(5*10**6),height=(5*10**6)*0.75,projection='lcc',
                 resolution='c',lat_0=np.mean(dec),lon_0=np.mean(ra))
-    map2.drawmapboundary(fill_color='aqua')
-    map2.fillcontinents(color='coral',lake_color='aqua')
-    map2.drawcoastlines()
+    # map2.drawmapboundary(fill_color='aqua')
+    # map2.fillcontinents(color='coral',lake_color='aqua')
+    # map2.drawcoastlines()
     x, y = map2(ra,dec)
     x_2, y_2 = map2(gw_ra,gw_dec)
     # map.scatter(longitude, latitude)
@@ -167,16 +167,18 @@ if True:
     map2.drawmeridians(meridians,labels=[False,False,False,True])
 
     map2.scatter(x, y, marker='.', color = 'm', zorder = 10, alpha = 0.05)
-    map2.scatter(x_2, y_2, marker='.',color=rgba_colors, zorder = 10, alpha = 1)
+    map2.scatter(x_2, y_2, marker='.', c = alphas, zorder = 10, alpha = 1)
+    cbar = plt.colorbar()
+    cbar.set_label("Probability")
     plt.title("Pan-STARRS1 Galaxy & GW190814 Positions")
-    plt.savefig("Zoomed Map 2.png")
+    plt.savefig("Zoomed Map 2.png", bbox_inches = "tight", dpi = 300)
 
     plt.figure(5)
     plt.hist(z_phot, bins=20)
     plt.title("Histogram of Redshifts from Pan-STARRS1")
     plt.xlabel("Photometric Red Shift")
     plt.ylabel("Frequency of Galaxies")
-    plt.savefig("Z Hist.png", bbox_inches = "tight")
+    plt.savefig("Z Hist.png", bbox_inches = "tight", dpi = 300)
     print("It worked")
 
 if False:

@@ -103,6 +103,7 @@ if True:
 
     print("Len  GW =", len(gw_ra))
     print("GW Percentage of Full File =", 100*(num_in_array / npix),"%")
+    print("GW Percentage in 90% Confidence of Full File =", 100 * (len(gw_ra) / npix), "%")
     print("Time to Complete: " + str(datetime.now() - now))
 
 
@@ -119,13 +120,14 @@ if True:
 ### GALAXY
 if True:
     total_file = 529270
-    num_in_array = int(total_file*0.01)
+    num_in_array = int(total_file*1.00)
     array_index = np.linspace(0, total_file, num_in_array, dtype=int)
     with open("GW190814_allData_v1_pjquinonez.csv", mode='r') as csv_file:
         galaxy_code = csv.DictReader(csv_file)
-        ra = []
-        dec = []
-        z_phot = []
+        ra = np.zeros(num_in_array)
+        dec = np.zeros(num_in_array)
+        index = 0
+        z_phot = np.zeros(num_in_array)
         i = 0
         perc = 5
         perc_now = perc
@@ -133,17 +135,18 @@ if True:
         now = datetime.now()
         for row in galaxy_code:
             if i/total_file >= perc_now/100:
-                print(perc_now, "%")
+                print(perc_now, "%", datetime.now() - now)
                 perc_now = perc_now + perc
             if i in array_index:
-                ra = ra + [float(row["ra"])]
-                dec = dec + [float(row["dec"])]
-                if -0 < float(row["z_phot"]) <= 1.0:
-                    z_phot = z_phot + [float(row["z_phot"])]
-
+                ra[index] = float(row["ra"])
+                dec[index] = float(row["dec"])
+                z_phot[index] = float(row["z_phot"])
+                index = index + 1
             i = i + 1
-    ra = np.array(ra)
-    dec = np.array(dec)
+
+    ra = ra[:index]
+    dec = dec[:index]
+    z_phot = z_phot[:index]
     print("Len  Galaxies =",len(ra))
     print("Galaxy Percentage of Full File =",100*(len(ra)/total_file),"%")
     print("Redshift Percentage of Full File =", 100*(len(z_phot) / total_file),"%")
@@ -174,7 +177,7 @@ if True:
     plt.savefig("Zoomed Map 2.png", bbox_inches = "tight", dpi = 300)
 
     plt.figure(5)
-    plt.hist(z_phot, bins=20)
+    plt.hist([x for x in z_phot if 0<x<=1], bins=20)
     plt.title("Histogram of Redshifts from Pan-STARRS1")
     plt.xlabel("Photometric Red Shift")
     plt.ylabel("Frequency of Galaxies")

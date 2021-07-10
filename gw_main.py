@@ -135,7 +135,7 @@ healpy routines.
 
 if False:
     # Bulk Upload New Data CSV to MySQL
-    query = """LOAD DATA LOCAL INFILE 'GW190814_allData_v1_pjquinonez.csv'
+    query = """LOAD DATA LOCAL INFILE 'PanSTARRS_allData_v1_pjquinonez.csv'
                INTO TABLE HealpixPixel_GalaxyDistance2 
                FIELDS TERMINATED BY ',' 
                LINES TERMINATED BY '\n' 

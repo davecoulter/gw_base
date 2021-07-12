@@ -43,11 +43,5 @@ from database_methods import *
 #         i = i + 1
 # print(index)
 # print(i)
-upload_csv = "./local_data/whatevertable.csv"
-upload_sql = """LOAD DATA LOCAL INFILE '%s' 
-                    INTO TABLE whatever 
-                    FIELDS TERMINATED BY ',' 
-                    LINES TERMINATED BY '\n' 
-                    (xdata);"""
-
-success = bulk_upload(upload_sql % upload_csv)
+str = "objID	uniquePspsOBid	raStack	decStack	raMean	decMean	ra	dec	ng	gMeanPSFMag	gMeanPSFMagErr	gMeanKronMag	gMeanKronMagErr	gMeanApMag	gMeanApMagErr	nr	rMeanPSFMag	rMeanPSFMagErr	rMeanKronMag	rMeanKronMagErr	rMeanApMag	rMeanApMagErr	ni	iMeanPSFMag	iMeanPSFMagErr	iMeanKronMag	iMeanKronMagErr	iMeanApMag	iMeanApMagErr	nz	zMeanPSFMag	zMeanPSFMagErr	zMeanKronMag	zMeanKronMagErr	zMeanApMag	zMeanApMagErr	ny	yMeanPSFMag	yMeanPSFMagErr	yMeanKronMag	yMeanKronMagErr	yMeanApMag	yMeanApMagErr	gQfPerfect	rQfPerfect	iQfPerfect	zQfPerfect	yQfPerfect	qualityFlag	objInfoFlag	gpetRadius	rpetRadius	ipetRadius	zpetRadius	ypetRadius	gpetR50	rpetR50	ipetR50	zpetR50	ypetR50	primaryDetection	bestDetection	gKronFlux	gKronFluxErr	rKronFlux	rKronFluxErr	iKronFlux	iKronFluxErr	zKronFlux	zKronFluxErr	yKronFlux	yKronFluxErr	class	prob_Galaxy	prob_Star	prob_QSO	z_phot	z_photErr	z_phot0	extrapolation_Photoz".replace("	",", ")
+print(str)

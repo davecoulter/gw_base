@@ -1,5 +1,5 @@
 from database_methods import *
-upload_csv = "local_data/PanSTARRS_allData_v2_pjquinonez.csv"
+upload_csv = "local_data/GW190814_allData_v0_pjquinonez.csv"
 upload_sql = """LOAD DATA LOCAL INFILE '%s' 
                     INTO TABLE PS1_Galaxy_v3 
                     FIELDS TERMINATED BY ',' 

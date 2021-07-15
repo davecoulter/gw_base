@@ -15,7 +15,7 @@ from ligo.skymap.postprocess import find_greedy_credible_levels
 from datetime import datetime
 
 
-
+### DRAW GLOBE
 if False:
     # set up orthographic map projection with
     # perspective of satellite looking down at 50N, 100W.
@@ -46,7 +46,7 @@ if False:
     plt.show()
 
 
-
+### DRAW ENTIRE SKY MAP
 if False:
     map = Basemap(projection='hammer',
                   lat_0=0, lon_0=0)
@@ -59,72 +59,54 @@ if False:
 
 
 
-
+### OPENING HEALPIX AS FITS
 if False:
     gw_190814 = fits.open("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")
     gw_190814.info()
     gw_data = gw_190814[1].data
+    print(gw_190814[1].columns)
     gw_190814.close()
-    for i in np.linspace(0, 12000000, 500, dtype=int):
+    for i in np.linspace(0, 12000000, 5, dtype=int):
         print(gw_data[i][0],gw_data[i][1],gw_data[i][2],gw_data[i][3])
     print("Type =", type(gw_data[0]))
     print("Len =",len(gw_data[0]))
 
 ### GRAVITATIONAL WAVE
 if True:
-    hpx = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")
-    npix = len(hpx)
-    print(npix)
+    # hpx = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")
+    prob, distmu, distsigma, distnorm = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0",field=range(4))
+    npix = len(prob)
     nside = hp.npix2nside(npix)
-    theta = []
-    phi = []
-    credible_levels = find_greedy_credible_levels(hpx)
-    alphas = []
-    print("Loading GW")
-    perc = 5
-    perc_now = perc
-    num_in_array = npix
-    now = datetime.now()
-    for i in np.linspace(0, npix-1, num_in_array, dtype=int):
-        if i/npix >= perc_now/100:
-            print(perc_now,"%")
-            perc_now = perc_now + perc
-        if credible_levels[i] <= 0.90:
-            alphas = alphas + [1 - credible_levels[i]]
-            theta_0, phi_0 = hp.pix2ang(nside, i)
-            theta = theta + [theta_0]
-            phi = phi + [phi_0]
-    gw_ra = [np.rad2deg(x) for x in phi]
-    gw_dec = [np.rad2deg(0.5*np.pi - x) for x in theta]
+    gw_bools = np.zeros(npix, dtype=bool)
+    indexes = np.linspace(0, npix - 1, npix, dtype=int)
+    credible_levels = find_greedy_credible_levels(prob)
 
-    rgba_colors = np.zeros((len(gw_ra), 4))
-    rgba_colors[:, 2] = 1.0
-    rgba_colors[:, 3] = alphas
+    perc_now = 0
+    start = datetime.now()
+    print("Loading GW ", str(start.time()))
+    for i in indexes:
+        if i / npix >= perc_now / 100:
+            print(perc_now, "%")
+            perc_now = perc_now + 5
+        if credible_levels[i] <= 0.90:
+            gw_bools[i] = True
+
+    alphas = 1 - credible_levels[indexes[gw_bools]]
+    theta, phi = hp.pix2ang(nside, indexes[gw_bools])
+    gw_ra = [np.rad2deg(x) for x in phi]
+    gw_dec = [np.rad2deg(0.5 * np.pi - x) for x in theta]
 
     print("Len  GW =", len(gw_ra))
-    print("GW Percentage of Full File =", 100*(num_in_array / npix),"%")
     print("GW Percentage in 90% Confidence of Full File =", 100 * (len(gw_ra) / npix), "%")
-    print("Time to Complete: " + str(datetime.now() - now))
+    print("Time to Complete: " + str(datetime.now() - start))
 
     ### SHOW GW RA AND DEC LIMITS
-    print()
-    print("RA = [" + str(max(gw_ra)) + ", " + str(min(gw_ra)) + "]")
-    print("Dec = [" + str(max(gw_dec)) + ", " + str(min(gw_dec)) + "]")
-
-
-
-    # map = Basemap(projection='hammer',
-    #               lat_0=0, lon_0=0)
-    # map.drawmapboundary(fill_color='aqua')
-    # map.fillcontinents(color='coral', lake_color='aqua')
-    # map.drawcoastlines()
-    # x, y = map(gw_ra, gw_dec)
-    # map.scatter(x, y, marker='.', zorder=10, color = 'm', alpha = 1)
-    # plt.savefig("map_test_4.png")
+    print("RA Limits = [" + str(min(gw_ra)) + ", " + str(max(gw_ra)) + "]")
+    print("Dec Limits = [" + str(min(gw_dec)) + ", " + str(max(gw_dec)) + "]")
 
 ### GALAXY
-### PANSTARR
-if True:
+### PANSTARRS - CSV
+if False:
     total_file = 529269
     num_in_array = int(total_file*0.01)
     array_index = np.linspace(0, total_file, num_in_array, dtype=int)
@@ -137,7 +119,7 @@ if True:
         i = 0
         perc = 5
         perc_now = perc
-        print("Loading PanSTARR Galaxy")
+        print("Loading PanSTARRS Galaxy")
         now = datetime.now()
         for row in galaxy_code:
             if i/total_file >= perc_now/100:
@@ -153,12 +135,27 @@ if True:
     p_ra = p_ra[:index]
     p_dec = p_dec[:index]
     p_z_phot = p_z_phot[:index]
-    print("Len  PanSTARR =",len(p_ra))
-    print("PanSTARR Percentage of Full File =",100*(len(p_ra)/total_file),"%")
-    print("PanSTARR Redshift Percentage of Full File =", 100*(len(p_z_phot) / total_file),"%")
+    print("Len  PanSTARRS =",len(p_ra))
+    print("PanSTARRS Percentage of Full File =",100*(len(p_ra)/total_file),"%")
+    print("PanSTARRS Redshift Percentage of Full File =", 100*(len(p_z_phot) / total_file),"%")
     print("Time to Complete: " + str(datetime.now() - now))
-### DES
+
+### PANSTARRS - DB
 if True:
+    start = datetime.now()
+    print("Loading PS1 Galaxy " + str(start.time()))
+    db_query = '''
+    SELECT ra,PS1_Galaxy_v3.dec, z_phot FROM PS1_Galaxy_v3;
+    '''
+    PS1 = query_db([db_query])[0]
+    PS1_ra = [x[0] for x in PS1]
+    PS1_dec = [x[1] for x in PS1]
+    PS1_z = [x[2] for x in PS1]
+    print("Len PS1 = " + str(len(PS1_ra)))
+    print("Time to Complete: " + str(datetime.now() - start))
+
+### DES
+if False:
     total_file = 1361811
     num_in_array = int(total_file * 0.01)
     array_index = np.linspace(0, total_file, num_in_array, dtype=int)
@@ -193,43 +190,81 @@ if True:
     print("Time to Complete: " + str(datetime.now() - now))
 
 
+### GLADE
+if True:
+    start = datetime.now()
+    print("Loading GLADE Galaxy " + str(start.time()))
+    db_query = '''
+    SELECT RA, _DEC, z FROM GalaxyDistance2 
+    WHERE 
+        RA >= 10.0 AND
+        RA <= 25.0 AND
+        _DEC <= -20.0 AND
+        _DEC >= -35.0;
+    '''
+    GLADE = query_db([db_query])[0]
+    GLADE_ra = [x[0] for x in GLADE]
+    GLADE_dec = [x[1] for x in GLADE]
+    GLADE_z = [x[2] for x in GLADE]
+    print("Len GLADE = " + str(len(GLADE_ra)))
+    print("Time to Complete: " + str(datetime.now() - start))
+
 
 ### SKY MAP/HISTOGRAM
 if True:
-    map2 = Basemap(width=(5*10**6),height=(5*10**6)*0.75,projection='lcc',
+    start = datetime.now()
+    print("Start Plotting " + str(start.time()))
+    map = Basemap(width=(5*10**6),height=(5*10**6)*0.75,projection='lcc',
                 resolution='c',lat_0=np.mean(gw_dec),lon_0=np.mean(gw_ra))
-    # map2.drawmapboundary(fill_color='aqua')
-    # map2.fillcontinents(color='coral',lake_color='aqua')
-    # map2.drawcoastlines()
+    # map.drawmapboundary(fill_color='aqua')
+    # map.fillcontinents(color='coral',lake_color='aqua')
+    # map.drawcoastlines()
 
-    p_x, p_y = map2(p_ra,p_dec)
-    d_x, d_y = map2(d_ra,d_dec)
-    gw_x, gw_y = map2(gw_ra,gw_dec)
+    p_x, p_y = map(PS1_ra,PS1_dec)
+    # d_x, d_y = map(d_ra,d_dec)
+    g_x, g_y = map(GLADE_ra,GLADE_dec)
+    gw_x, gw_y = map(gw_ra,gw_dec)
     ### map.scatter(longitude, latitude)
-    ### latitude = dec, longitude = ra
+    ### longitude = ra, latitude = dec
 
-    parallels = np.arange(-90,90,10.)
-    map2.drawparallels(parallels,labels=[True,False,False,False])
-    meridians = np.arange(-180,180,20.)
-    map2.drawmeridians(meridians,labels=[False,False,False,True])
+    parallels = np.arange(-90,90,5)
+    map.drawparallels(parallels,labels=[True,False,False,False], labelstyle="+/-")
+    meridians = np.arange(-180,180,10)
+    map.drawmeridians(meridians,labels=[False,False,False,True], labelstyle="+/-")
 
     ### Position Graph
-    map2.scatter(p_x, p_y, marker='.', color = 'm', zorder = 10, alpha = 0.05)
-    map2.scatter(d_x, d_y, marker='.', color='r', zorder=10, alpha=0.05)
-    map2.scatter(gw_x, gw_y, marker='.', c = alphas, zorder = 10, alpha = 1)
+    map.scatter(p_x, p_y, marker='.', color = 'm', zorder = 10, alpha = 0.1, label = "PanSTARRS1\n" + str(len(p_x))+ " Galaxies")
+    # map.scatter(d_x, d_y, marker='.', color='r', zorder=10, alpha=0.1, label = "DES\n" + str(len(d_x)) + " Galaxies")
+    map.scatter(g_x, g_y, marker='.', color='aqua', zorder=10, alpha=0.1, label = "GLADE\n" + str(len(g_x)) + " Galaxies")
+    map.scatter(gw_x, gw_y, marker='.', c = alphas, zorder = 10, alpha = 1)
+    plt.xlabel("Right Ascension", labelpad=20)
+    plt.ylabel("Declination", labelpad=30)
     cbar = plt.colorbar()
     cbar.set_label("Probability")
-    plt.title("Pan-STARRS1, DES, & GW190814 Positions")
-    plt.savefig("Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
+    leg = plt.legend(loc=2, prop={'size': 6})
+    for lh in leg.legendHandles:
+        lh.set_alpha(1)
+    plt.title("PanSTARRS1, GLADE, & GW190814 Positions")
+    plt.savefig("images/Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
 
-    ### Red shift Histogram
-    # plt.figure(5)
-    # plt.hist([x for x in z_phot if 0<x<=1], bins=20)
-    # plt.title("Histogram of Redshifts from Pan-STARRS1")
-    # plt.xlabel("Photometric Red Shift")
-    # plt.ylabel("Frequency of Galaxies")
-    # plt.savefig("Z Hist_inProgress.png", bbox_inches = "tight", dpi = 300)
-    # print("It worked")
+    ## Red shift Histogram - PS1
+    plt.figure(5)
+    plt.hist([x for x in PS1_z if 0<x<=1], bins=20)
+    plt.title("Histogram of Redshifts from PanSTARRS1")
+    plt.xlabel("Photometric Red Shift")
+    plt.ylabel("Frequency of Galaxies")
+    plt.savefig("images/Z Hist PS1_inProgress.png", bbox_inches = "tight", dpi = 300)
+
+    ## Red shift Histogram - PS1
+    plt.figure(6)
+    plt.hist([x for x in GLADE_z if 0 < x <= 1], bins=20)
+    plt.title("Histogram of Redshifts from GLADE")
+    plt.xlabel("Spectroscopic Red Shift")
+    plt.ylabel("Frequency of Galaxies")
+    plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
+
+    print("Finished Plotting " + str(datetime.now() - start))
+
 
 # if False:
 #     gw_190814 = fits.open("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")

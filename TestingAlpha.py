@@ -9,18 +9,18 @@ from mpl_toolkits.basemap import Basemap
 
 
 ### Test out database methods
-detector_select = '''
-SELECT RA, _DEC FROM GalaxyDistance2 
-WHERE 
-    RA >= 10.0 AND
-    RA <= 25.0 AND
-    _DEC <= -20.0 AND
-    _DEC >= -35.0
-LIMIT 5;
-'''
-result = query_db([detector_select])[0]
-for r in result:
-    print("RA: " + str(r[0]) + ", DEC: " + str(r[1]))
+# detector_select = '''
+# SELECT RA, _DEC FROM GalaxyDistance2
+# WHERE
+#     RA >= 10.0 AND
+#     RA <= 25.0 AND
+#     _DEC <= -20.0 AND
+#     _DEC >= -35.0
+# LIMIT 5;
+# '''
+# result = query_db([detector_select])[0]
+# for r in result:
+#     print("RA: " + str(r[0]) + ", DEC: " + str(r[1]))
 
 ### Testing Distance Healpy
 # if False:
@@ -28,6 +28,8 @@ for r in result:
 #     print(len(prob), len(distmu), len(distsigma), len(distnorm))
 #     for i in range(0):
 #         print(distmu[i], distsigma[i], distnorm[i])
+
+
 
 
 

@@ -103,6 +103,7 @@ if True:
     ### SHOW GW RA AND DEC LIMITS
     print("RA Limits = [" + str(min(gw_ra)) + ", " + str(max(gw_ra)) + "]")
     print("Dec Limits = [" + str(min(gw_dec)) + ", " + str(max(gw_dec)) + "]")
+    print("DEC Lower Bound of Top Blob = " + str(min([x for x in gw_dec if x >= -30])))
 
 ### GALAXY
 ### PANSTARRS - CSV
@@ -145,7 +146,12 @@ if True:
     start = datetime.now()
     print("Loading PS1 Galaxy " + str(start.time()))
     db_query = '''
-    SELECT ra,PS1_Galaxy_v3.dec, z_phot FROM PS1_Galaxy_v3;
+    SELECT ra,PS1_Galaxy_v3.dec, z_phot FROM PS1_Galaxy_v3
+    WHERE 
+        ra >= 10.0 AND
+        ra <= 25.0 AND
+        PS1_Galaxy_v3.dec <= -20.0 AND
+        PS1_Galaxy_v3.dec >= -28.0;
     '''
     PS1 = query_db([db_query])[0]
     PS1_ra = [x[0] for x in PS1]
@@ -214,8 +220,14 @@ if True:
 if True:
     start = datetime.now()
     print("Start Plotting " + str(start.time()))
-    map = Basemap(width=(5*10**6),height=(5*10**6)*0.75,projection='lcc',
+
+
+    map = Basemap(width=3*(10**6),height=3*(10**6)*0.75,projection='lcc',
                 resolution='c',lat_0=np.mean(gw_dec),lon_0=np.mean(gw_ra))
+    # map = Basemap(projection='lcc',
+    #               resolution='c', lat_0=np.mean(gw_dec), lon_0=np.mean(gw_ra))
+
+
     # map.drawmapboundary(fill_color='aqua')
     # map.fillcontinents(color='coral',lake_color='aqua')
     # map.drawcoastlines()
@@ -227,15 +239,16 @@ if True:
     ### map.scatter(longitude, latitude)
     ### longitude = ra, latitude = dec
 
-    parallels = np.arange(-90,90,5)
+    parallels = np.arange(-90,90,2)
     map.drawparallels(parallels,labels=[True,False,False,False], labelstyle="+/-")
-    meridians = np.arange(-180,180,10)
+    meridians = np.arange(-180,180,5)
     map.drawmeridians(meridians,labels=[False,False,False,True], labelstyle="+/-")
 
     ### Position Graph
-    map.scatter(p_x, p_y, marker='.', color = 'm', zorder = 10, alpha = 0.1, label = "PanSTARRS1\n" + str(len(p_x))+ " Galaxies")
-    # map.scatter(d_x, d_y, marker='.', color='r', zorder=10, alpha=0.1, label = "DES\n" + str(len(d_x)) + " Galaxies")
-    map.scatter(g_x, g_y, marker='.', color='aqua', zorder=10, alpha=0.1, label = "GLADE\n" + str(len(g_x)) + " Galaxies")
+    dot_alpha = 0.05
+    map.scatter(p_x, p_y, marker='.', color = 'm', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
+    # map.scatter(d_x, d_y, marker='.', color='r', zorder=10, alpha=dot_alpha, label = "DES\n" + "{:,}".format(len(p_x)) + " Galaxies")
+    map.scatter(g_x, g_y, marker='.', color='aqua', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
     map.scatter(gw_x, gw_y, marker='.', c = alphas, zorder = 10, alpha = 1)
     plt.xlabel("Right Ascension", labelpad=20)
     plt.ylabel("Declination", labelpad=30)

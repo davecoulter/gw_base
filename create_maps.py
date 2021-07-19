@@ -15,6 +15,13 @@ from ligo.skymap.postprocess import find_greedy_credible_levels
 from datetime import datetime
 
 
+load_GLADE_db = False
+load_PanSTARRS1_db = True
+plot = False
+load_GW = False
+
+
+
 ### DRAW GLOBE
 if False:
     # set up orthographic map projection with
@@ -72,7 +79,7 @@ if False:
     print("Len =",len(gw_data[0]))
 
 ### GRAVITATIONAL WAVE
-if True:
+if load_GW:
     # hpx = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")
     prob, distmu, distsigma, distnorm = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0",field=range(4))
     npix = len(prob)
@@ -101,12 +108,15 @@ if True:
     print("Time to Complete: " + str(datetime.now() - start))
 
     ### SHOW GW RA AND DEC LIMITS
-    print("RA Limits = [" + str(min(gw_ra)) + ", " + str(max(gw_ra)) + "]")
-    print("Dec Limits = [" + str(min(gw_dec)) + ", " + str(max(gw_dec)) + "]")
-    print("DEC Lower Bound of Top Blob = " + str(min([x for x in gw_dec if x >= -30])))
+    print("First Blob")
+    print("RA Limits = [" + str(min([x for x in gw_ra if x <= 20])) + ", " + str(max([x for x in gw_ra if x <= 20])) + "]")
+    print("Dec Limits = [" + str(min([x for x in gw_dec if x >= -30])) + ", " + str(max([x for x in gw_dec if x >= -30])) + "]")
+    print("Second Blob")
+    print("RA Limits = [" + str(min([x for x in gw_ra if x >= 20])) + ", " + str(max([x for x in gw_ra if x >= 20])) + "]")
+    print("Dec Limits = [" + str(min([x for x in gw_dec if x <= -30])) + ", " + str(max([x for x in gw_dec if x <= -30])) + "]")
 
 ### GALAXY
-### PANSTARRS - CSV
+#region### PANSTARRS - CSV
 if False:
     total_file = 529269
     num_in_array = int(total_file*0.01)
@@ -140,23 +150,37 @@ if False:
     print("PanSTARRS Percentage of Full File =",100*(len(p_ra)/total_file),"%")
     print("PanSTARRS Redshift Percentage of Full File =", 100*(len(p_z_phot) / total_file),"%")
     print("Time to Complete: " + str(datetime.now() - now))
+#endregion
 
 ### PANSTARRS - DB
-if True:
+if load_PanSTARRS1_db:
     start = datetime.now()
     print("Loading PS1 Galaxy " + str(start.time()))
     db_query = '''
-    SELECT ra,PS1_Galaxy_v3.dec, z_phot FROM PS1_Galaxy_v3
+    SELECT ra,PS1_Galaxy_v3.dec, z_phot, class, prob_Galaxy FROM PS1_Galaxy_v3
     WHERE 
         ra >= 10.0 AND
-        ra <= 25.0 AND
-        PS1_Galaxy_v3.dec <= -20.0 AND
+        ra <= 15.0 AND
+        PS1_Galaxy_v3.dec <= -22.0 AND
         PS1_Galaxy_v3.dec >= -28.0;
     '''
     PS1 = query_db([db_query])[0]
     PS1_ra = [x[0] for x in PS1]
     PS1_dec = [x[1] for x in PS1]
     PS1_z = [x[2] for x in PS1]
+    PS1_class = [x[3] for x in PS1]
+    PS1_prob_Galaxy = [x[4] for x in PS1]
+
+    print("Galaxies: " + str(len([x for x in PS1_class if x == "GALAXY"])/len(PS1_class) * 100) + "%")
+
+    # print("Galaxy Probability: " + np.mean([float(x) for x in PS1_prob_Galaxy]))
+    sum = 0
+    for i in [PS1_prob_Galaxy[x] for x in range(len(PS1_prob_Galaxy)) if PS1_class[x] == "GALAXY"]:
+        sum = sum + i
+    print("Avg Galaxy Probability: " + str(sum/len([PS1_prob_Galaxy[x] for x in range(len(PS1_prob_Galaxy)) if PS1_class[x] == "GALAXY"])))
+    # print(len([x for x in PS1_prob_Galaxy if type(x) == float]))
+    # print(len(PS1_prob_Galaxy))
+
     print("Len PS1 = " + str(len(PS1_ra)))
     print("Time to Complete: " + str(datetime.now() - start))
 
@@ -197,16 +221,22 @@ if False:
 
 
 ### GLADE
-if True:
+if load_GLADE_db:
     start = datetime.now()
     print("Loading GLADE Galaxy " + str(start.time()))
     db_query = '''
     SELECT RA, _DEC, z FROM GalaxyDistance2 
     WHERE 
-        RA >= 10.0 AND
-        RA <= 25.0 AND
-        _DEC <= -20.0 AND
-        _DEC >= -35.0;
+    
+        (RA >= 10.0 AND
+        RA <= 15.0 AND
+        _DEC <= -22.0 AND
+        _DEC >= -28.0)
+        OR
+        (RA >= 20.0 AND
+        RA <= 24.0 AND
+        _DEC <= -30.0 AND
+        _DEC >= -34.0);
     '''
     GLADE = query_db([db_query])[0]
     GLADE_ra = [x[0] for x in GLADE]
@@ -217,7 +247,7 @@ if True:
 
 
 ### SKY MAP/HISTOGRAM
-if True:
+if plot:
     start = datetime.now()
     print("Start Plotting " + str(start.time()))
 

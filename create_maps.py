@@ -157,7 +157,7 @@ if load_PanSTARRS1_db:
     start = datetime.now()
     print("Loading PS1 Galaxy " + str(start.time()))
     db_query = '''
-    SELECT ra,PS1_Galaxy_v3.dec, z_phot, class, prob_Galaxy FROM PS1_Galaxy_v3
+    SELECT ra,PS1_Galaxy_v3.dec, z_phot, class, prob_Galaxy, objID FROM PS1_Galaxy_v3
     WHERE 
         ra >= 10.0 AND
         ra <= 15.0 AND
@@ -170,8 +170,11 @@ if load_PanSTARRS1_db:
     PS1_z = [x[2] for x in PS1]
     PS1_class = [x[3] for x in PS1]
     PS1_prob_Galaxy = [x[4] for x in PS1]
-
+    PS1_objid = [x[5] for x in PS1]
+    print("Unique Objects: " + str(len(np.unique(PS1_objid))))
+    print("Unique Objects as Percentage of Total: " + str(len(np.unique(PS1_objid))/len(PS1_objid)) + "%")
     print("Galaxies: " + str(len([x for x in PS1_class if x == "GALAXY"])/len(PS1_class) * 100) + "%")
+
 
     # print("Galaxy Probability: " + np.mean([float(x) for x in PS1_prob_Galaxy]))
     sum = 0

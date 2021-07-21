@@ -46,7 +46,7 @@ from mpl_toolkits.basemap import Basemap
 ### Load in PS1
 print("Loading PS1 Galaxy ")
 db_query = '''
-SELECT ra,PS1_Galaxy_vNewLimits.dec, z_phot, class, prob_Galaxy, objID FROM PS1_Galaxy_vNewLimits;
+SELECT ra,PS1_Galaxy_vNewLimits.dec, z_phot, class, prob_Galaxy, objID, gMeanKronMag FROM PS1_Galaxy_vNewLimits;
 '''
 PS1 = query_db([db_query])[0]
 PS1_ra = [x[0] for x in PS1]
@@ -55,6 +55,7 @@ PS1_z = [x[2] for x in PS1]
 PS1_class = [x[3] for x in PS1]
 PS1_prob_Galaxy = [x[4] for x in PS1]
 PS1_objid = [x[5] for x in PS1]
+PS1_G_band = [x[6] for x in PS1]
 print("Unique Objects: " + str(len(np.unique(PS1_objid))))
 print("Len PS1: " + str(len(PS1_objid)))
 
@@ -63,7 +64,7 @@ print()
 ### Load in GLADE
 print("Loading GLADE Galaxy")
 db_query = '''
-    SELECT RA, _DEC, z FROM GalaxyDistance2 
+    SELECT RA, _DEC, z, B FROM GalaxyDistance2 
     WHERE 
 
         RA >= 10.0 AND
@@ -75,6 +76,7 @@ GLADE = query_db([db_query])[0]
 GLADE_ra = [x[0] for x in GLADE]
 GLADE_dec = [x[1] for x in GLADE]
 GLADE_z = [x[2] for x in GLADE]
+GLADE_B_band = [x[3] for x in GLADE]
 print("Len GLADE = " + str(len(GLADE_ra)))
 
 print()
@@ -103,12 +105,25 @@ print("Number of Cross Matches above 1: " + str(len([x for x in cross_match if l
 
 GLADE_ids = [x for x in range(len(cross_match)) if len(cross_match[x]) > 0]
 only_cross = [x for x in cross_match if len(x) > 0]
+PS1_ids = [[x for x in range(len(PS1_objid)) if PS1_objid[x] == only_cross[y][0]][0] for y in range(len(only_cross))]
+band_diff = [abs(PS1_G_band[PS1_ids[x]] - GLADE_B_band[GLADE_ids[x]]) for x in range(len(GLADE_ids)) if (type(PS1_G_band[PS1_ids[x]]) == float and type(GLADE_B_band[GLADE_ids[x]]) == float)]
+good_b_bands = [GLADE_B_band[GLADE_ids[x]] for x in range(len(GLADE_ids)) if (type(PS1_G_band[PS1_ids[x]]) == float and type(GLADE_B_band[GLADE_ids[x]]) == float)]
+
+
+plt.figure(6)
+print(len([x for x in band_diff if x < 100])/len(band_diff))
+print(np.mean([x for x in good_b_bands if type(x) == float]))
+plt.hist([x for x in band_diff if x < 100], bins=20)
+plt.title("Histogram of B-band and G-band difference of GLADE and PS1 Cross Match")
+plt.xlabel("Band Difference (mags)")
+plt.ylabel("Frequency of difference")
+plt.savefig("images/Crossmatch Band diff.png", bbox_inches="tight", dpi=300)
 
 # for i in range(5):
 #     print(GLADE_ra[GLADE_ids[i]],GLADE_dec[GLADE_ids[i]])
 #     # ps1_index = np.where(PS1_objid == only_cross[i][0])[0]
-#     ps1_index = [x for x in range(len(PS1_objid)) if PS1_objid[x] == only_cross[i][0]][0]
-#     print(PS1_ra[ps1_index], PS1_dec[ps1_index])
+#     # ps1_index = [x for x in range(len(PS1_objid)) if PS1_objid[x] == only_cross[i][0]][0]
+#     print(PS1_ra[PS1_ids[i]], PS1_dec[PS1_ids[i]])
 #     print()
 
 

@@ -1,7 +1,7 @@
 from database_methods import *
-upload_csv = "local_data/GW190814_allData_v0_pjquinonez.csv"
+upload_csv = "local_data/PS1_All_Local_Data_pjquinonez.csv"
 upload_sql = """LOAD DATA LOCAL INFILE '%s' 
-                    INTO TABLE PS1_Galaxy_v3 
+                    INTO TABLE PS1_Galaxy_v4 
                     FIELDS TERMINATED BY ',' 
                     LINES TERMINATED BY '\n' 
                     IGNORE 1 ROWS;"""

@@ -13,6 +13,7 @@ from mpl_toolkits.basemap import Basemap
 from astropy.io import fits
 from ligo.skymap.postprocess import find_greedy_credible_levels
 from datetime import datetime
+from ligo.skymap import distance
 
 
 load_GLADE_db = True
@@ -116,7 +117,7 @@ if load_GW:
     print("RA Limits = [" + str(min([x for x in gw_ra if x >= 20])) + ", " + str(max([x for x in gw_ra if x >= 20])) + "]")
     print("Dec Limits = [" + str(min([x for x in gw_dec if x <= -30])) + ", " + str(max([x for x in gw_dec if x <= -30])) + "]")
 
-### GALAXY
+### GALAXIES
 #region### PANSTARRS - CSV
 if False:
     total_file = 529269
@@ -153,12 +154,12 @@ if False:
     print("Time to Complete: " + str(datetime.now() - now))
 #endregion
 
-### PANSTARRS - DB
+### PANSTARRS1 - DB
 if load_PanSTARRS1_db:
     start = datetime.now()
     print("Loading PS1 Galaxy " + str(start.time()))
     db_query = '''
-    SELECT ra,PS1_Galaxy_vNewLimits.dec, z_phot, class, prob_Galaxy, objID, gMeanKronMag FROM PS1_Galaxy_vNewLimits;
+    SELECT ra,PS1_Galaxy_v4.dec, z_phot, class, prob_Galaxy, objID, gMeanKronMag, ps_score FROM PS1_Galaxy_v4;
     '''
     PS1 = query_db([db_query])[0]
     PS1_ra = [x[0] for x in PS1]
@@ -168,6 +169,7 @@ if load_PanSTARRS1_db:
     PS1_prob_Galaxy = [x[4] for x in PS1]
     PS1_objid = [x[5] for x in PS1]
     PS1_G_band = [x[6] for x in PS1]
+    PS1_ps_score = [x[7] for x in PS1]
     print("Those with Galaxy Tag: " + str(len([x for x in PS1_class if x == "GALAXY"])/len(PS1_class) * 100) + "%")
     print("Len PS1 = " + str(len(PS1_ra)))
     print("Time to Complete: " + str(datetime.now() - start))
@@ -294,12 +296,13 @@ if cross_match:
     PS1_prob_Galaxy = [PS1_prob_Galaxy[x] for x in range(len(PS1_prob_Galaxy)) if x not in PS1_index]
     PS1_objid = [PS1_objid[x] for x in range(len(PS1_objid)) if x not in PS1_index]
     PS1_G_band = [PS1_G_band[x] for x in range(len(PS1_G_band)) if x not in PS1_index]
+    PS1_ps_score = [PS1_ps_score[x] for x in range(len(PS1_ps_score)) if x not in PS1_index]
     print("New PS1 Len: " + str(len(PS1_ra)))
     print("Finish Limiting PS1 Data: " + str(datetime.now() - start))
 
 
 
-### SKY MAP/HISTOGRAM
+### SKY MAP/HISTOGRAMS
 if plot:
     start = datetime.now()
     print("Start Plotting " + str(start.time()))
@@ -339,6 +342,15 @@ if plot:
         lh.set_alpha(1)
     plt.title("PanSTARRS1, GLADE, & GW190814 Positions")
     plt.savefig("images/Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
+
+
+    ## PS1 ps_score
+    plt.figure(6)
+    plt.hist(PS1_ps_score, bins=20)
+    plt.title("Histogram of ps_score From PanSTARRS1 with Galaxy Restrictions")
+    plt.xlabel("ps_score (0 is galaxy, 1 is star)")
+    plt.ylabel("Frequency of ps_Score")
+    plt.savefig("images/ps_score Histogram.png", bbox_inches="tight", dpi=300)
 
     ## Red shift Histogram - PS1
     plt.figure(3)

@@ -21,6 +21,7 @@ load_PanSTARRS1_db = True
 cross_match = True
 plot = True
 load_GW = True
+gw_zone = True
 
 
 
@@ -54,7 +55,6 @@ if False:
     plt.savefig("map_test.png")
     plt.show()
 
-
 ### DRAW ENTIRE SKY MAP
 if False:
     map = Basemap(projection='hammer',
@@ -65,8 +65,6 @@ if False:
     x, y = map(gw_ra,gw_dec)
     map.scatter(x, y, marker='.',color='m', zorder = 10, alpha = 0.05)
     plt.savefig("map_test_2.png")
-
-
 
 ### OPENING HEALPIX AS FITS
 if False:
@@ -84,6 +82,7 @@ if False:
 if load_GW:
     # hpx = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")
     prob, distmu, distsigma, distnorm = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0",field=range(4))
+    dist_mean, dist_std, norm = distance.parameters_to_moments(distmu, distsigma)
     npix = len(prob)
     nside = hp.npix2nside(npix)
     gw_bools = np.zeros(npix, dtype=bool)
@@ -104,6 +103,8 @@ if load_GW:
     theta, phi = hp.pix2ang(nside, indexes[gw_bools])
     gw_ra = [np.rad2deg(x) for x in phi]
     gw_dec = [np.rad2deg(0.5 * np.pi - x) for x in theta]
+    dist_mean = dist_mean[gw_bools]
+    dist_std = dist_std[gw_bools]
 
     print("Len  GW =", len(gw_ra))
     print("GW Percentage in 90% Confidence of Full File =", 100 * (len(gw_ra) / npix), "%")
@@ -159,17 +160,16 @@ if load_PanSTARRS1_db:
     start = datetime.now()
     print("Loading PS1 Galaxy " + str(start.time()))
     db_query = '''
-    SELECT ra,PS1_Galaxy_v4.dec, z_phot, class, prob_Galaxy, objID, gMeanKronMag, ps_score FROM PS1_Galaxy_v4;
+    SELECT ra,PS1_Galaxy_v4.dec, z_phot, class, objID, gMeanKronMag, ps_score FROM PS1_Galaxy_v4;
     '''
     PS1 = query_db([db_query])[0]
     PS1_ra = [x[0] for x in PS1]
     PS1_dec = [x[1] for x in PS1]
     PS1_z = [x[2] for x in PS1]
     PS1_class = [x[3] for x in PS1]
-    PS1_prob_Galaxy = [x[4] for x in PS1]
-    PS1_objid = [x[5] for x in PS1]
-    PS1_G_band = [x[6] for x in PS1]
-    PS1_ps_score = [x[7] for x in PS1]
+    PS1_objid = [x[4] for x in PS1]
+    PS1_G_band = [x[5] for x in PS1]
+    PS1_ps_score = [x[6] for x in PS1]
     print("Those with Galaxy Tag: " + str(len([x for x in PS1_class if x == "GALAXY"])/len(PS1_class) * 100) + "%")
     print("Len PS1 = " + str(len(PS1_ra)))
     print("Time to Complete: " + str(datetime.now() - start))
@@ -220,7 +220,6 @@ if load_GLADE_db:
     db_query = '''
     SELECT RA, _DEC, z, B FROM GalaxyDistance2 
     WHERE 
-    
         (RA >= 10.0 AND
         RA <= 15.0 AND
         _DEC <= -22.0 AND
@@ -293,14 +292,50 @@ if cross_match:
     PS1_dec = [PS1_dec[x] for x in range(len(PS1_dec)) if x not in PS1_index]
     PS1_z = [PS1_z[x] for x in range(len(PS1_z)) if x not in PS1_index]
     PS1_class = [PS1_class[x] for x in range(len(PS1_class)) if x not in PS1_index]
-    PS1_prob_Galaxy = [PS1_prob_Galaxy[x] for x in range(len(PS1_prob_Galaxy)) if x not in PS1_index]
     PS1_objid = [PS1_objid[x] for x in range(len(PS1_objid)) if x not in PS1_index]
     PS1_G_band = [PS1_G_band[x] for x in range(len(PS1_G_band)) if x not in PS1_index]
     PS1_ps_score = [PS1_ps_score[x] for x in range(len(PS1_ps_score)) if x not in PS1_index]
     print("New PS1 Len: " + str(len(PS1_ra)))
     print("Finish Limiting PS1 Data: " + str(datetime.now() - start))
 
+### ONLY IN GW REGION
 
+if gw_zone:
+    start = datetime.now()
+    print("Start Limit to GW Zone - " + str(start.time()))
+    PS1_bools = np.ones(len(PS1_ra), dtype=bool)
+    GLADE_bools = np.ones(len(GLADE_ra), dtype=bool)
+
+    for i in range(len(PS1_bools)):
+        phi = np.deg2rad(PS1_ra[i])
+        theta = 0.5*np.pi - np.deg2rad(PS1_dec[i])
+        this_pix = hp.ang2pix(nside, theta, phi)
+        if credible_levels[this_pix] > 0.90:
+            PS1_bools[i] = False
+    for i in range(len(GLADE_bools)):
+        phi = np.deg2rad(GLADE_ra[i])
+        theta = 0.5*np.pi - np.deg2rad(GLADE_dec[i])
+        this_pix = hp.ang2pix(nside, theta, phi)
+        if credible_levels[this_pix] > 0.90:
+            GLADE_bools[i] = False
+
+
+
+    PS1_ra = [PS1_ra[x] for x in range(len(PS1_ra)) if PS1_bools[x]]
+    PS1_dec = [PS1_dec[x] for x in range(len(PS1_dec)) if PS1_bools[x]]
+    PS1_z = [PS1_z[x] for x in range(len(PS1_z)) if PS1_bools[x]]
+    PS1_class = [PS1_class[x] for x in range(len(PS1_class)) if PS1_bools[x]]
+    PS1_objid = [PS1_objid[x] for x in range(len(PS1_objid)) if PS1_bools[x]]
+    PS1_G_band = [PS1_G_band[x] for x in range(len(PS1_G_band)) if PS1_bools[x]]
+    PS1_ps_score = [PS1_ps_score[x] for x in range(len(PS1_ps_score)) if PS1_bools[x]]
+    print("New Len PS1: " + str(len(PS1_ra)))
+
+    GLADE_ra = [GLADE_ra[x] for x in range(len(GLADE_ra)) if GLADE_bools[x]]
+    GLADE_dec = [GLADE_dec[x] for x in range(len(GLADE_dec)) if GLADE_bools[x]]
+    GLADE_z = [GLADE_z[x] for x in range(len(GLADE_z)) if GLADE_bools[x]]
+    GLADE_B_band = [GLADE_B_band[x] for x in range(len(GLADE_B_band)) if GLADE_bools[x]]
+    print("New Len GLADE: " + str(len(GLADE_ra)))
+    print("Finished Limit to GW Zone: " + str(datetime.now() - start))
 
 ### SKY MAP/HISTOGRAMS
 if plot:

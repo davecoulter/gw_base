@@ -129,6 +129,12 @@ from mpl_toolkits.basemap import Basemap
 #endregion
 
 
+a = 0.5*3.14
+b = np.rad2deg()
+
+# print(np.array([1,23,3])["1st"])
+
+
 
 
 

@@ -9,7 +9,7 @@ from mpl_toolkits.basemap import Basemap
 import matplotlib.cm as cm
 from ligo.skymap import distance
 
-#region Old Maps, Fits, DES
+#region Old Maps, Fits, CSV upload, DES
 ## DRAW GLOBE
 # if False:
 #     # set up orthographic map projection with

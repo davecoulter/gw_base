@@ -201,6 +201,12 @@ GLADE_dec = np.array([x[9] for x in GLADE])
 GLADE_z = np.array([x[15] for x in GLADE])
 GLADE_b_band = np.array([x[16] for x in GLADE])
 
+
+zed_perc = abs(np.array([x[57] for x in PS1])/PS1_z)
+print("Min z percent Error: " + str(min(zed_perc)))
+print("Max z percent Error: " + str(max(zed_perc)))
+
+
 start = datetime.now()
 print("Starting Cross Match - " + str(start.time()))
 nums = len(GLADE)

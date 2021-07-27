@@ -190,15 +190,15 @@ meridians = np.arange(-180,180,5)
 map.drawmeridians(meridians,labels=[False,False,False,True], labelstyle="+/-")
 
 ### Position Graph
-dot_alpha = 0.05
-map.scatter(p_x, p_y, marker='.', color = 'm', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
-# map.scatter(d_x, d_y, marker='.', color='r', zorder=10, alpha=dot_alpha, label = "DES\n" + "{:,}".format(len(p_x)) + " Galaxies")
-map.scatter(g_x, g_y, marker='.', color='aqua', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
+dot_alpha = 0.00
+# # map.scatter(d_x, d_y, marker='.', color='r', zorder=10, alpha=dot_alpha, label = "DES\n" + "{:,}".format(len(p_x)) + " Galaxies")
 map.scatter(gw_x, gw_y, marker='.', c = alphas, zorder = 10, alpha = 1)
-plt.xlabel("Right Ascension", labelpad=20)
-plt.ylabel("Declination", labelpad=30)
 cbar = plt.colorbar()
 cbar.set_label("Probability")
+map.scatter(p_x, p_y, marker='.', color = 'hotpink', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
+map.scatter(g_x, g_y, marker='.', color='aqua', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
+plt.xlabel("Right Ascension", labelpad=20)
+plt.ylabel("Declination", labelpad=30)
 leg = plt.legend(loc=2, prop={'size': 6})
 for lh in leg.legendHandles:
     lh.set_alpha(1)

@@ -158,9 +158,8 @@ for i in range(len(PS1_columns)):
 print("\nGLADE Columns")
 for i in range(len(GLADE_columns)):
     print(i,GLADE_columns[i])
-
-
-
+print(np.std(np.array([1,2,3,4,5,6,7,8,9,10])))
+print(np.full(10, 7.345))
 
 
 

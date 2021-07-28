@@ -14,6 +14,8 @@ from astropy.io import fits
 from ligo.skymap.postprocess import find_greedy_credible_levels
 from datetime import datetime
 from ligo.skymap import distance
+from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 c = 299792.458
 
 script_start = datetime.now()
@@ -147,7 +149,7 @@ for i in range(len(PS1_ra)):
     this_pix = hp.ang2pix(nside, theta, phi)
     hubble_const[index_hubble] = c*PS1_z[i]/PS1_dist[i]
     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((PS1_z[i]/PS1_z_err[i])**2) + ((PS1_dist[i]/PS1_dist_err[i])**2))
-    hubble_const_probs[index_hubble] = PS1_probs[i]/galaxies_in_pixel[this_pix]
+    hubble_const_probs[index_hubble] = (PS1_probs[i]/galaxies_in_pixel[this_pix])#/(PS1_z[i]**3)
     index_hubble = index_hubble + 1
 for i in range(len(GLADE_ra)):
     phi = np.deg2rad(GLADE_ra[i])
@@ -155,7 +157,7 @@ for i in range(len(GLADE_ra)):
     this_pix = hp.ang2pix(nside, theta, phi)
     hubble_const[index_hubble] = c*GLADE_z[i]/GLADE_dist[i]
     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
-    hubble_const_probs[index_hubble] = GLADE_probs[i]/galaxies_in_pixel[this_pix]
+    hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])#/(GLADE_z[i]**3)
     index_hubble = index_hubble + 1
 # plt.figure(7)
 # plt.hist([x for x in hubble_const if -100 <= x <= 1000], bins=20)
@@ -168,9 +170,9 @@ for i in range(len(GLADE_ra)):
 ### SKY MAP/HISTOGRAMS
 start = datetime.now()
 print("Start Plotting " + str(start.time()))
-plt.figure(2)
-map = Basemap(width=3*(10**6),height=3*(10**6)*0.75,projection='lcc',
-            resolution='c',lat_0=np.mean(gw_dec),lon_0=np.mean(gw_ra))
+fig = plt.figure(2)
+ax = fig.add_subplot(111)
+map = Basemap(width=2.5*(10**6),height=2.5*(10**6)*0.75,projection='lcc', resolution='c',lat_0=np.mean(gw_dec),lon_0=np.mean(gw_ra))
 # map = Basemap(projection='lcc',
 #               resolution='c', lat_0=np.mean(gw_dec), lon_0=np.mean(gw_ra))
 # map.drawmapboundary(fill_color='aqua')
@@ -192,17 +194,39 @@ map.drawmeridians(meridians,labels=[False,False,False,True], labelstyle="+/-")
 ### Position Graph
 dot_alpha = 0.00
 # # map.scatter(d_x, d_y, marker='.', color='r', zorder=10, alpha=dot_alpha, label = "DES\n" + "{:,}".format(len(p_x)) + " Galaxies")
+# map.scatter(p_x, p_y, marker='.', color = 'hotpink', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
+# map.scatter(g_x, g_y, marker='.', color='aqua', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
 map.scatter(gw_x, gw_y, marker='.', c = alphas, zorder = 10, alpha = 1)
 cbar = plt.colorbar()
 cbar.set_label("Probability")
-map.scatter(p_x, p_y, marker='.', color = 'hotpink', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
-map.scatter(g_x, g_y, marker='.', color='aqua', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
+map.scatter(p_x, p_y, marker = 's', facecolors='none', edgecolors = 'hotpink', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
+map.scatter(g_x, g_y, marker = '^', facecolors='none', edgecolors ='hotpink', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
 plt.xlabel("Right Ascension", labelpad=20)
 plt.ylabel("Declination", labelpad=30)
 leg = plt.legend(loc=2, prop={'size': 6})
 for lh in leg.legendHandles:
     lh.set_alpha(1)
 plt.title("PanSTARRS1, GLADE, & GW190814 Positions")
+
+
+
+#
+# axins = zoomed_inset_axes(ax, 7, loc=1)
+# map2 = Basemap(width=2.5*(10**6),height=2.5*(10**6)*0.75,projection='lcc', resolution='c',lat_0=np.mean(gw_dec),lon_0=np.mean(gw_ra))
+# parallels = np.arange(-90,90,2)
+# map2.drawparallels(parallels,labels=[True,False,False,False], labelstyle="+/-")
+# meridians = np.arange(-180,180,5)
+# map2.drawmeridians(meridians,labels=[False,False,False,True], labelstyle="+/-")
+# p_x, p_y = map2(PS1_ra,PS1_dec)
+# # d_x, d_y = map(d_ra,d_dec)
+# g_x, g_y = map2(GLADE_ra,GLADE_dec)
+# map2.scatter(p_x, p_y, marker = 's', facecolors='none', edgecolors = 'hotpink', zorder = 10, alpha = 0.05, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
+# map2.scatter(g_x, g_y, marker = '^', facecolors='none', edgecolors ='hotpink', zorder=10, alpha=0.05, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
+# mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
+
+
+# ax1 = fig.add_axes([17.5, -24, 0.15, 0.15])
+
 plt.savefig("images/Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
 
 
@@ -234,12 +258,13 @@ plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
 
 ## H0 PDF
 plt.figure(8)
-# plt.hist(hubble_const,bins = 20, weights=hubble_const_probs, density=True)
-print(max([hubble_const_probs[x] for x in range(len(hubble_const)) if -100 <= hubble_const[x] <= 1000]))
-plt.hist([hubble_const[x] for x in range(len(hubble_const)) if -100 <= hubble_const[x] <= 1000],bins = 20, weights=[hubble_const_probs[x] for x in range(len(hubble_const)) if -100 <= hubble_const[x] <= 1000], density=False)
+# plt.hist(hubble_const,bins = 20, weights=hubble_const_probs, density=False)
+plt.hist([hubble_const[x] for x in range(len(hubble_const)) if 20 <= hubble_const[x] <= 150],bins = 20, weights=[hubble_const_probs[x] for x in range(len(hubble_const)) if 20 <= hubble_const[x] <= 150], density=True, log = True)
+# plt.yscale('log', nonposy='clip')
 plt.title("Histogram of Hubble Constant")
 plt.xlabel("Hubble Constant (km/s/Mpc)")
 plt.ylabel("Probability of H0")
+# plt.savefig("images/HO PDF_inProgress.png", bbox_inches="tight", dpi=300)
 plt.savefig("images/HO PDF With Limits.png", bbox_inches="tight", dpi=300)
 
 print("Finished Plotting " + str(datetime.now() - start))

@@ -157,13 +157,13 @@ for i in range(len(GLADE_ra)):
     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
     hubble_const_probs[index_hubble] = GLADE_probs[i]/galaxies_in_pixel[this_pix]
     index_hubble = index_hubble + 1
-plt.figure(7)
-plt.hist([x for x in hubble_const if -100 <= x <= 1000], bins=20)
-plt.title("Histogram of Hubble Constant")
-plt.xlabel("Hubble Constant (km/s/Mpc)")
-plt.ylabel("Frequency of Hubble Constant")
-plt.savefig("images/H0 Histogram_inProgress.png", bbox_inches="tight", dpi=300)
-print("H0 = " + str(np.sum(hubble_const * hubble_const_probs)/np.sum(hubble_const_probs)))
+# plt.figure(7)
+# plt.hist([x for x in hubble_const if -100 <= x <= 1000], bins=20)
+# plt.title("Histogram of Hubble Constant")
+# plt.xlabel("Hubble Constant (km/s/Mpc)")
+# plt.ylabel("Frequency of Hubble Constant")
+# plt.savefig("images/H0 Histogram_inProgress.png", bbox_inches="tight", dpi=300)
+# print("H0 = " + str(np.sum(hubble_const * hubble_const_probs)/np.sum(hubble_const_probs)))
 
 ### SKY MAP/HISTOGRAMS
 start = datetime.now()
@@ -223,7 +223,7 @@ plt.xlabel("Photometric Red Shift")
 plt.ylabel("Frequency of Galaxies")
 plt.savefig("images/Z Hist PS1_inProgress.png", bbox_inches = "tight", dpi = 300)
 
-## Red shift Histogram - PS1
+## Red shift Histogram - GLADE
 plt.figure(4)
 # plt.hist([x for x in GLADE_z if 0 < x <= 1], bins=20)
 plt.hist(GLADE_z, bins=20)
@@ -231,6 +231,16 @@ plt.title("Histogram of Redshifts from GLADE")
 plt.xlabel("Spectroscopic Red Shift")
 plt.ylabel("Frequency of Galaxies")
 plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
+
+## H0 PDF
+plt.figure(8)
+# plt.hist(hubble_const,bins = 20, weights=hubble_const_probs, density=True)
+print(max([hubble_const_probs[x] for x in range(len(hubble_const)) if -100 <= hubble_const[x] <= 1000]))
+plt.hist([hubble_const[x] for x in range(len(hubble_const)) if -100 <= hubble_const[x] <= 1000],bins = 20, weights=[hubble_const_probs[x] for x in range(len(hubble_const)) if -100 <= hubble_const[x] <= 1000], density=False)
+plt.title("Histogram of Hubble Constant")
+plt.xlabel("Hubble Constant (km/s/Mpc)")
+plt.ylabel("Probability of H0")
+plt.savefig("images/HO PDF With Limits.png", bbox_inches="tight", dpi=300)
 
 print("Finished Plotting " + str(datetime.now() - start))
 

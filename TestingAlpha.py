@@ -150,20 +150,21 @@ from ligo.skymap import distance
 #     gw_dec = np.array(gw_dec)
 #endregion
 
-# PS1_columns = "ObjID", "uniquePspsOBid", "raStack", "decStack", "raMean", "decMean", "ra", "dec", "ng", "gMeanPSFMag", "gMeanPSFMagErr", "gMeanKronMag", "gMeanKronMagErr", "gMeanApMag", "gMeanApMagErr", "nr", "rMeanPSFMag", "rMeanPSFMagErr", "rMeanKronMag", "rMeanKronMagErr", "rMeanApMag", "rMeanApMagErr", "ni", "iMeanPSFMag", "iMeanPSFMagErr", "iMeanKronMag", "iMeanKronMagErr", "iMeanApMag", "iMeanApMagErr", "nz", "zMeanPSFMag", "zMeanPSFMagErr", "zMeanKronMag", "zMeanKronMagErr", "zMeanApMag", "zMeanApMagErr", "ny", "yMeanPSFMag", "yMeanPSFMagErr", "yMeanKronMag", "yMeanKronMagErr", "yMeanApMag", "yMeanApMagErr", "gQfPerfect", "rQfPerfect", "iQfPerfect", "zQfPerfect", "yQfPerfect", "qualityFlag", "objInfoFlag", "primaryDetection", "bestDetection", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "z_phot0", "extrapolation_Photoz", "ps_score"
-# GLADE_columns = "id", "Galaxy_id", "Distance_id", "PGC", "Name_GWGC", "Name_HyperLEDA", "Name_2MASS", "Name_SDSS_DR12", "RA", "_Dec", "Coord", "dist", "dist_err", "z_dist", "z_dist_err", "z", "B", "B_err", "B_abs", "J", "J_err", "H", "H_err", "K", "K_err", "flag1", "flag2", "flag3"
-# print("PS1 Columns")
-# for i in range(len(PS1_columns)):
-#     print(i,PS1_columns[i])
-# print("\nGLADE Columns")
-# for i in range(len(GLADE_columns)):
-#     print(i,GLADE_columns[i])
+PS1_columns = "ObjID", "uniquePspsOBid", "raStack", "decStack", "raMean", "decMean", "ra", "dec", "ng", "gMeanPSFMag", "gMeanPSFMagErr", "gMeanKronMag", "gMeanKronMagErr", "gMeanApMag", "gMeanApMagErr", "nr", "rMeanPSFMag", "rMeanPSFMagErr", "rMeanKronMag", "rMeanKronMagErr", "rMeanApMag", "rMeanApMagErr", "ni", "iMeanPSFMag", "iMeanPSFMagErr", "iMeanKronMag", "iMeanKronMagErr", "iMeanApMag", "iMeanApMagErr", "nz", "zMeanPSFMag", "zMeanPSFMagErr", "zMeanKronMag", "zMeanKronMagErr", "zMeanApMag", "zMeanApMagErr", "ny", "yMeanPSFMag", "yMeanPSFMagErr", "yMeanKronMag", "yMeanKronMagErr", "yMeanApMag", "yMeanApMagErr", "gQfPerfect", "rQfPerfect", "iQfPerfect", "zQfPerfect", "yQfPerfect", "qualityFlag", "objInfoFlag", "primaryDetection", "bestDetection", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "z_phot0", "extrapolation_Photoz", "ps_score"
+PS1_new_columns = ["ObjID", "raMean", "decMean", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "ps_score"]
+GLADE_columns = "id", "Galaxy_id", "Distance_id", "PGC", "Name_GWGC", "Name_HyperLEDA", "Name_2MASS", "Name_SDSS_DR12", "RA", "_Dec", "Coord", "dist", "dist_err", "z_dist", "z_dist_err", "z", "B", "B_err", "B_abs", "J", "J_err", "H", "H_err", "K", "K_err", "flag1", "flag2", "flag3"
+print("PS1 Columns")
+for i in range(len(PS1_new_columns)):
+    print(i,PS1_new_columns[i])
+print("\nGLADE Columns")
+for i in range(len(GLADE_columns)):
+    print(i,GLADE_columns[i])
 
-h0 = np.array([1,1,1,1,2,3,4])
-probs = np.array([0.25, 0.25,0.25,0.25,3, 0.6, 0.01])
-plt.figure(1)
-plt.hist(h0, weights=probs/max(probs), density=False)
-plt.savefig("images/aaaaaaaaaH0 PDF hist TEST.png", bbox_inches = "tight", dpi = 300)
+# h0 = np.array([1,1,1,1,2,3,4])
+# probs = np.array([0.25, 0.25,0.25,0.25,3, 0.6, 0.01])
+# plt.figure(1)
+# plt.hist(h0, weights=probs/max(probs), density=False)
+# plt.savefig("images/aaaaaaaaaH0 PDF hist TEST.png", bbox_inches = "tight", dpi = 300)
 
 
 

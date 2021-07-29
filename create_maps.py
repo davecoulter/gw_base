@@ -66,7 +66,7 @@ print("Dec Limits = [" + str(min([x for x in gw_dec if x <= -30])) + ", " + str(
 start = datetime.now()
 print("Loading PS1 Galaxy " + str(start.time()))
 db_query = '''
-SELECT ra,PS1_Galaxy_Final.dec, z_phot, class, objID, gMeanKronMag, ps_score, z_photErr FROM PS1_Galaxy_Final;
+SELECT raMean, decMean, z_phot, class, objID, ps_score, z_photErr FROM PS1_Galaxy_Final_PS;
 '''
 PS1 = query_db([db_query])[0]
 PS1_ra = [x[0] for x in PS1]
@@ -74,9 +74,8 @@ PS1_dec = [x[1] for x in PS1]
 PS1_z = [x[2] for x in PS1]
 PS1_class = [x[3] for x in PS1]
 PS1_objid = [x[4] for x in PS1]
-PS1_G_band = [x[5] for x in PS1]
-PS1_ps_score = [x[6] for x in PS1]
-PS1_z_err = [x[7] for x in PS1]
+PS1_ps_score = [x[5] for x in PS1]
+PS1_z_err = [x[6] for x in PS1]
 print("Those with Galaxy Tag: " + str(len([x for x in PS1_class if x == "GALAXY"])/len(PS1_class) * 100) + "%")
 print("Those with Quasar Tag: " + str(len([x for x in PS1_class if x == "QSO"]) / len(PS1_class) * 100) + "%")
 print("Len PS1 = " + str(len(PS1_ra)))

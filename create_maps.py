@@ -16,10 +16,15 @@ from datetime import datetime
 from ligo.skymap import distance
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+import scipy.stats
 c = 299792.458
 
 script_start = datetime.now()
 
+def gaussian_func(x, norm, mean, sigma):
+    return norm * ((1.0/(sigma*np.sqrt(2.0*np.pi))) * (np.e**(-1.0*((x - mean)**2)/(2.0*sigma**2))))
+thing = lambda x: gaussian_func(x, 2, 3, 4)
+print(thing(np.array([1,2,3,4])))
 
 ### GRAVITATIONAL WAVE
 # hpx = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")
@@ -148,7 +153,7 @@ for i in range(len(PS1_ra)):
     this_pix = hp.ang2pix(nside, theta, phi)
     hubble_const[index_hubble] = c*PS1_z[i]/PS1_dist[i]
     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((PS1_z[i]/PS1_z_err[i])**2) + ((PS1_dist[i]/PS1_dist_err[i])**2))
-    hubble_const_probs[index_hubble] = (PS1_probs[i]/galaxies_in_pixel[this_pix])#/(PS1_z[i]**3)
+    hubble_const_probs[index_hubble] = (PS1_probs[i]/galaxies_in_pixel[this_pix])/(PS1_z[i]**3)
     index_hubble = index_hubble + 1
 for i in range(len(GLADE_ra)):
     phi = np.deg2rad(GLADE_ra[i])
@@ -156,15 +161,15 @@ for i in range(len(GLADE_ra)):
     this_pix = hp.ang2pix(nside, theta, phi)
     hubble_const[index_hubble] = c*GLADE_z[i]/GLADE_dist[i]
     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
-    hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])#/(GLADE_z[i]**3)
+    hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
     index_hubble = index_hubble + 1
-# plt.figure(7)
-# plt.hist([x for x in hubble_const if -100 <= x <= 1000], bins=20)
-# plt.title("Histogram of Hubble Constant")
-# plt.xlabel("Hubble Constant (km/s/Mpc)")
-# plt.ylabel("Frequency of Hubble Constant")
-# plt.savefig("images/H0 Histogram_inProgress.png", bbox_inches="tight", dpi=300)
-# print("H0 = " + str(np.sum(hubble_const * hubble_const_probs)/np.sum(hubble_const_probs)))
+H0_gauss_funcs = [lambda x: gaussian_func(x, hubble_const_probs[i], hubble_const[i], hubble_const_err[i]) for i in range(len(hubble_const))]
+print("Len Gauss Funcs: " + str(len(H0_gauss_funcs)))
+H0_input = np.arange(start=20, stop=150+1, step=5, dtype=float)
+H0_input_probs = np.zeros(len(H0_input))
+for i in range(len(H0_input)):
+    H0_input_probs[i] = sum([y(H0_input[i]) for y in H0_gauss_funcs])
+# H0_input_probs = np.array([sum([y(x) for y in H0_gauss_funcs]) for x in H0_input])
 
 ### SKY MAP/HISTOGRAMS
 start = datetime.now()
@@ -206,26 +211,6 @@ leg = plt.legend(loc=2, prop={'size': 6})
 for lh in leg.legendHandles:
     lh.set_alpha(1)
 plt.title("PanSTARRS1, GLADE, & GW190814 Positions")
-
-
-
-#
-# axins = zoomed_inset_axes(ax, 7, loc=1)
-# map2 = Basemap(width=2.5*(10**6),height=2.5*(10**6)*0.75,projection='lcc', resolution='c',lat_0=np.mean(gw_dec),lon_0=np.mean(gw_ra))
-# parallels = np.arange(-90,90,2)
-# map2.drawparallels(parallels,labels=[True,False,False,False], labelstyle="+/-")
-# meridians = np.arange(-180,180,5)
-# map2.drawmeridians(meridians,labels=[False,False,False,True], labelstyle="+/-")
-# p_x, p_y = map2(PS1_ra,PS1_dec)
-# # d_x, d_y = map(d_ra,d_dec)
-# g_x, g_y = map2(GLADE_ra,GLADE_dec)
-# map2.scatter(p_x, p_y, marker = 's', facecolors='none', edgecolors = 'hotpink', zorder = 10, alpha = 0.05, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
-# map2.scatter(g_x, g_y, marker = '^', facecolors='none', edgecolors ='hotpink', zorder=10, alpha=0.05, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
-# mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
-
-
-# ax1 = fig.add_axes([17.5, -24, 0.15, 0.15])
-
 plt.savefig("images/Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
 
 
@@ -256,15 +241,24 @@ plt.ylabel("Frequency of Galaxies")
 plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
 
 ## H0 PDF
+# plt.figure(8)
+# # plt.hist(hubble_const,bins = 20, weights=hubble_const_probs, density=False)
+# plt.hist([hubble_const[x] for x in range(len(hubble_const)) if 20 <= hubble_const[x] <= 150],bins = 20, weights=[hubble_const_probs[x] for x in range(len(hubble_const)) if 20 <= hubble_const[x] <= 150], density=True, log = True)
+# # plt.yscale('log', nonposy='clip')
+# plt.title("Histogram of Hubble Constant")
+# plt.xlabel("Hubble Constant (km/s/Mpc)")
+# plt.ylabel("Probability of H0")
+# # plt.savefig("images/HO PDF_inProgress.png", bbox_inches="tight", dpi=300)
+# plt.savefig("images/HO PDF_inProgress.png", bbox_inches="tight", dpi=300)
+
 plt.figure(8)
-# plt.hist(hubble_const,bins = 20, weights=hubble_const_probs, density=False)
-plt.hist([hubble_const[x] for x in range(len(hubble_const)) if 20 <= hubble_const[x] <= 150],bins = 20, weights=[hubble_const_probs[x] for x in range(len(hubble_const)) if 20 <= hubble_const[x] <= 150], density=True, log = True)
-# plt.yscale('log', nonposy='clip')
-plt.title("Histogram of Hubble Constant")
+print(H0_input_probs)
+plt.scatter(H0_input, H0_input_probs)
+# plt.yscale('log')
+plt.title("H0 PDF")
 plt.xlabel("Hubble Constant (km/s/Mpc)")
 plt.ylabel("Probability of H0")
-# plt.savefig("images/HO PDF_inProgress.png", bbox_inches="tight", dpi=300)
-plt.savefig("images/HO PDF With Limits.png", bbox_inches="tight", dpi=300)
+plt.savefig("images/H0 PDF_inProgress.png", bbox_inches="tight", dpi=300)
 
 print("Finished Plotting " + str(datetime.now() - start))
 

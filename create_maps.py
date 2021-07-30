@@ -16,15 +16,25 @@ from datetime import datetime
 from ligo.skymap import distance
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
-import scipy.stats
+import scipy
 c = 299792.458
 
 script_start = datetime.now()
 
 def gaussian_func(x, norm, mean, sigma):
     return norm * ((1.0/(sigma*np.sqrt(2.0*np.pi))) * (np.e**(-1.0*((x - mean)**2)/(2.0*sigma**2))))
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+
 thing = lambda x: gaussian_func(x, 2, 3, 4)
+thing2 = lambda x: 2*gaussian(x=x,mu=3, sig=4)
 print(thing(np.array([1,2,3,4])))
+print(thing2(np.array([1,2,3,4])))
+x = np.arange(20,81,1)
+y = gaussian_func(x,3,50,25)
+plt.figure(99)
+plt.plot(x,y)
+plt.savefig("images/TESTING Gauss Func.png", bbox_inches = "tight", dpi = 300)
 
 ### GRAVITATIONAL WAVE
 # hpx = hp.read_map("Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0")
@@ -163,9 +173,13 @@ for i in range(len(GLADE_ra)):
     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
     hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
     index_hubble = index_hubble + 1
-H0_gauss_funcs = [lambda x: gaussian_func(x, hubble_const_probs[i], hubble_const[i], hubble_const_err[i]) for i in range(len(hubble_const))]
+H0_min = 20
+H0_max = 150
+# H0_gauss_funcs = [lambda x: hubble_const_probs[i]* gaussian(x=x, mu=hubble_const[i], sig=hubble_const_err[i]) for i in range(len(hubble_const))]
+H0_gauss_funcs = [lambda x: gaussian_func(x=x, norm=hubble_const_probs[i], mean=hubble_const[i], sigma=hubble_const_err[i]) for i in range(len(hubble_const)) if H0_min <= hubble_const[i] <= H0_max]
 print("Len Gauss Funcs: " + str(len(H0_gauss_funcs)))
-H0_input = np.arange(start=20, stop=150+1, step=5, dtype=float)
+print(type(H0_gauss_funcs[0]))
+H0_input = np.arange(start=H0_min, stop=H0_max+1, step=5, dtype=float)
 H0_input_probs = np.zeros(len(H0_input))
 for i in range(len(H0_input)):
     H0_input_probs[i] = sum([y(H0_input[i]) for y in H0_gauss_funcs])
@@ -253,7 +267,7 @@ plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
 
 plt.figure(8)
 print(H0_input_probs)
-plt.scatter(H0_input, H0_input_probs)
+plt.plot(H0_input, H0_input_probs)
 # plt.yscale('log')
 plt.title("H0 PDF")
 plt.xlabel("Hubble Constant (km/s/Mpc)")

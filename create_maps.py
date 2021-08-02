@@ -174,7 +174,7 @@ for i in range(len(GLADE_ra)):
     hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
     index_hubble = index_hubble + 1
 H0_min = 20
-H0_max = 150
+H0_max = 300
 # H0_gauss_funcs = [lambda x: hubble_const_probs[i]* gaussian(x=x, mu=hubble_const[i], sig=hubble_const_err[i]) for i in range(len(hubble_const))]
 H0_gauss_funcs = [lambda x: gaussian_func(x=x, norm=hubble_const_probs[i], mean=hubble_const[i], sigma=hubble_const_err[i]) for i in range(len(hubble_const)) if H0_min <= hubble_const[i] <= H0_max]
 print("Len Gauss Funcs: " + str(len(H0_gauss_funcs)))
@@ -183,6 +183,10 @@ H0_input = np.arange(start=H0_min, stop=H0_max+1, step=5, dtype=float)
 H0_input_probs = np.zeros(len(H0_input))
 for i in range(len(H0_input)):
     H0_input_probs[i] = sum([y(H0_input[i]) for y in H0_gauss_funcs])
+integrate_sum = 0
+for i in range(len(H0_input_probs)-1):
+    integrate_sum = integrate_sum + ((H0_input_probs[i] + H0_input_probs[i+1])/2)*(H0_input[i+1] - H0_input[i])
+H0_input_probs = H0_input_probs/integrate_sum
 # H0_input_probs = np.array([sum([y(x) for y in H0_gauss_funcs]) for x in H0_input])
 
 ### SKY MAP/HISTOGRAMS

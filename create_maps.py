@@ -16,7 +16,7 @@ from datetime import datetime
 from ligo.skymap import distance
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
-import scipy
+import scipy.stats
 c = 299792.458
 
 script_start = datetime.now()
@@ -173,6 +173,7 @@ for i in range(len(GLADE_ra)):
     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
     hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
     index_hubble = index_hubble + 1
+# Calculate Hubble Const
 H0_min = 20
 H0_max = 300
 # H0_gauss_funcs = [lambda x: hubble_const_probs[i]* gaussian(x=x, mu=hubble_const[i], sig=hubble_const_err[i]) for i in range(len(hubble_const))]
@@ -188,6 +189,48 @@ for i in range(len(H0_input_probs)-1):
     integrate_sum = integrate_sum + ((H0_input_probs[i] + H0_input_probs[i+1])/2)*(H0_input[i+1] - H0_input[i])
 H0_input_probs = H0_input_probs/integrate_sum
 # H0_input_probs = np.array([sum([y(x) for y in H0_gauss_funcs]) for x in H0_input])
+
+
+### Dave H0 Calculation
+print("\n\nDoing Dave H0 Calculation")
+H0_dist = [scipy.stats.norm(loc = hubble_const[x], scale = hubble_const_probs[x]) for x in range(len(hubble_const))]
+H0_input_dave = np.linspace(20, 500, 100)
+H0_phot_sum = np.zeros(len(H0_input_dave))
+# for i in range(len(H0_dist)):
+#     dist = H0_dist[i]
+#     prob = hubble_const_probs[i]
+#     result = prob * dist.pdf(H0_input_dave)
+#     # H0_phot_sum[i] = result
+#     if i <= 5:
+#         print(len(result))
+# # print(H0_phot_sum)
+
+for i in range(len(H0_input_dave)):
+    # print(len(H0_dist))
+    # print(len(hubble_const_probs))
+    # print(len(H0_phot_sum))
+    # print(len(H0_input_dave))
+    print(i)
+    result = [hubble_const_probs[x] * H0_dist[x].pdf(H0_input_dave[i]) for x in range(len(H0_dist))]
+    result = [float(x) if x > 10**-10 else 0.0 for x in result]
+    # print("Result:",result)
+    H0_phot_sum[i] = sum(result)
+    # print("H0 Prob Sum:", H0_phot_sum[i])
+# print(H0_phot_sum)
+
+integrate_sum = 0
+for i in range(len(H0_phot_sum)-1):
+    integrate_sum = integrate_sum + ((H0_phot_sum[i] + H0_phot_sum[i+1])/2)*(H0_input_dave[i+1] - H0_input_dave[i])
+H0_phot_sum = H0_phot_sum/integrate_sum
+H0_mean = sum([H0_input_dave[x]*H0_phot_sum[x] for x in range(len(H0_input_dave))])/sum(H0_phot_sum)
+
+plt.figure(23)
+plt.plot(H0_input_dave,H0_phot_sum)
+plt.xlabel("Hubble Constant (km/s/Mpc)")
+plt.ylabel("Probability of H0")
+plt.title("Dave's H0 PDF")
+plt.axvline(x = H0_mean)
+plt.savefig("images/TESTINNG DAVE H0 PDF.png", bbox_inches = "tight", dpi = 300)
 
 ### SKY MAP/HISTOGRAMS
 start = datetime.now()

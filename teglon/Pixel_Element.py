@@ -1,5 +1,7 @@
 from Teglon_Shape import *
-
+from matplotlib.patches import Polygon
+from astropy import units as u
+import astropy.coordinates as coord
 
 class Pixel_Element(Teglon_Shape):
     def __init__(self, index, nside, prob, pixel_id=None, mean_dist=None, stddev_dist=None):
@@ -93,7 +95,7 @@ class Pixel_Element(Teglon_Shape):
     def query_polygon_string(self):
 
         if not self.__query_polygon_string:
-            self.self.__query_polygon_string = self.create_query_polygon_string(initial_poly_in_radian=True)
+            self.__query_polygon_string = self.create_query_polygon_string(initial_poly_in_radian=True)
         return self.__query_polygon_string
 
     def enclosed_pixel_indices(self, nside_out):

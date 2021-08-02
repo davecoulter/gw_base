@@ -132,3 +132,13 @@ healpy routines.
 '''
 
 # The rest of the tutorial is on the webpage -- take a look and get comfortable with Healpy! Next up will be MySQL...
+
+if False:
+    # Bulk Upload New Data CSV to MySQL
+    query = """LOAD DATA LOCAL INFILE 'PanSTARRS_allData_v1_pjquinonez.csv'
+               INTO TABLE HealpixPixel_GalaxyDistance2 
+               FIELDS TERMINATED BY ',' 
+               LINES TERMINATED BY '\n' 
+               (PS1_Galaxy_v2);"""
+
+    bulk_upload(query)

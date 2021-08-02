@@ -21,7 +21,7 @@ import healpy as hp
 
 # Map won't show because not in jupyter, seek help
 print("Reading GW190425 Map")
-hpx_path = "gw_skymaps/GW190425_PublicationSamples_flattened.fits.gz"
+hpx_path = "Events/S190814bv/GW190814_PublicationSamples_flattened.fits.gz,0"
 wmap_map_I = hp.read_map(hpx_path)
 orig_prob, orig_distmu, orig_distsigma, orig_distnorm, header_gen = hp.read_map(hpx_path, field=(0, 1, 2, 3), h=True)
 # By default, read_map loads the first column, for reading other columns you can specify the field keyword.
@@ -46,18 +46,21 @@ hp.mollview(
 hp.graticule()
 plt.savefig("pedros_figure_1.png")
 
+mask = wmap_map_I.astype(np.bool)
+wmap_map_I_masked = hp.ma(wmap_map_I)
+wmap_map_I_masked.mask = np.logical_not(mask)
+
+plt.figure(4, figsize=(10,8))
+plt.hist(wmap_map_I_masked.compressed(), bins=1000)
+plt.savefig("pedros_figure_4.png")
+
 plt.figure(2, figsize=(10,8))
 hp.gnomview(wmap_map_I, rot=[0, 0.3], title="GnomView", unit="mK", format="%.2g")
 plt.savefig("pedros_figure_2.png")
 
 plt.figure(3, figsize=(10,8))
-mask = wmap_map_I.astype(np.bool)
-wmap_map_I_masked = hp.ma(wmap_map_I)
-wmap_map_I_masked.mask = np.logical_not(mask)
 hp.mollview(wmap_map_I_masked.filled())
 plt.savefig("pedros_figure_3.png")
 plt.close(3)
 
-plt.figure(4, figsize=(10,8))
-plt.hist(wmap_map_I_masked.compressed(), bins=1000)
-plt.savefig("pedros_figure_4.png")
+

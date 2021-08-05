@@ -12,7 +12,7 @@ import astropy.units as u
 
 script_start = datetime.now()
 
-plotting = True
+plotting = False
 write_csv = True
 
 PS1_columns = ["ObjID", "uniquePspsOBid", "raStack", "decStack", "raMean", "decMean", "ra", "dec", "ng", "gMeanPSFMag", "gMeanPSFMagErr", "gMeanKronMag", "gMeanKronMagErr", "gMeanApMag", "gMeanApMagErr", "nr", "rMeanPSFMag", "rMeanPSFMagErr", "rMeanKronMag", "rMeanKronMagErr", "rMeanApMag", "rMeanApMagErr", "ni", "iMeanPSFMag", "iMeanPSFMagErr", "iMeanKronMag", "iMeanKronMagErr", "iMeanApMag", "iMeanApMagErr", "nz", "zMeanPSFMag", "zMeanPSFMagErr", "zMeanKronMag", "zMeanKronMagErr", "zMeanApMag", "zMeanApMagErr", "ny", "yMeanPSFMag", "yMeanPSFMagErr", "yMeanKronMag", "yMeanKronMagErr", "yMeanApMag", "yMeanApMagErr", "gQfPerfect", "rQfPerfect", "iQfPerfect", "zQfPerfect", "yQfPerfect", "qualityFlag", "objInfoFlag", "primaryDetection", "bestDetection", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "z_phot0", "extrapolation_Photoz", "ps_score"]
@@ -117,96 +117,63 @@ print("New Len GLADE: " + str(len(GLADE)))
 print("Finished Limit to GW Zone: " + str(datetime.now() - start))
 
 
-### Redshift Limit
-PS1_ra = np.array([x[1] for x in PS1])
-PS1_dec = np.array([x[2] for x in PS1])
-PS1_z = np.array([x[7] for x in PS1])
-PS1_z_err = np.array([x[8] for x in PS1])
-GLADE_ra = np.array([x[8] for x in GLADE])
-GLADE_dec = np.array([x[9] for x in GLADE])
-GLADE_z = np.array([x[15] for x in GLADE])
-GLADE_z_err = np.full(len(GLADE_z), 10**-4)
-
-start = datetime.now()
-print("Start Limit Redshift - " + str(start.time()))
-PS1_bools = np.ones(len(PS1), dtype=bool)
-GLADE_bools = np.ones(len(GLADE), dtype=bool)
-c = 299792.458
-rel_uncert_max = 3
-abs_z_min = -0.5
-abs_z_max = 1.5
-
-rel_i = 0
-abs_i = 0
-
-for i in range(len(PS1_bools)):
-    phi = np.deg2rad(PS1_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    if (PS1_z[i] + PS1_z_err[i] < (20 * (dist_mean[this_pix] - 2 * dist_std[this_pix])) / c) or (PS1_z[i] - PS1_z_err[i] > (150 * (dist_mean[this_pix] + 2 * dist_std[this_pix])) / c):
-        PS1_bools[i] = False
-    if PS1_bools[i]:
-        if PS1_z_err[i]/PS1_z[i] > rel_uncert_max:
-            PS1_bools[i] = False
-            rel_i = rel_i + 1
-    if PS1_bools[i]:
-        if PS1_z[i] > abs_z_max or PS1_z[i] < abs_z_min:
-            PS1_bools[i] = False
-            abs_i = abs_i + 1
-
-for i in range(len(GLADE_bools)):
-    phi = np.deg2rad(GLADE_ra[i])
-    theta = 0.5*np.pi - np.deg2rad(GLADE_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    if (GLADE_z[i]+GLADE_z_err[i] < (20 * (dist_mean[this_pix] - 2*dist_std[this_pix]))/c) or (GLADE_z[i]-GLADE_z_err[i] > (150 * (dist_mean[this_pix] + 2*dist_std[this_pix]))/c):
-        GLADE_bools[i] = False
-
-# cosmo_high = LambdaCDM(H0=20.0, Om0=0.27, Ode0=0.73)
-# cosmo_low = LambdaCDM(H0=150.0, Om0=0.27, Ode0=0.73)
-# print("Starting PS1 Redshift Limit")
-# perc_now = 0
+# ### Redshift Limit
+# PS1_ra = np.array([x[1] for x in PS1])
+# PS1_dec = np.array([x[2] for x in PS1])
+# PS1_z = np.array([x[7] for x in PS1])
+# PS1_z_err = np.array([x[8] for x in PS1])
+# GLADE_ra = np.array([x[8] for x in GLADE])
+# GLADE_dec = np.array([x[9] for x in GLADE])
+# GLADE_z = np.array([x[15] for x in GLADE])
+# GLADE_z_err = np.full(len(GLADE_z), 10**-4)
+#
+# start = datetime.now()
+# print("Start Limit Redshift - " + str(start.time()))
+# PS1_bools = np.ones(len(PS1), dtype=bool)
+# GLADE_bools = np.ones(len(GLADE), dtype=bool)
+# c = 299792.458
+# rel_uncert_max = 3
+# abs_z_min = -0.5
+# abs_z_max = 1.5
+#
+# rel_i = 0
+# abs_i = 0
+#
 # for i in range(len(PS1_bools)):
-#     if(i/len(PS1_bools))*100 >= perc_now:
-#         print(str(perc_now) + "%")
-#         perc_now = perc_now + 5
 #     phi = np.deg2rad(PS1_ra[i])
 #     theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
 #     this_pix = hp.ang2pix(nside, theta, phi)
-#     max_dist = dist_mean[this_pix] + 2*dist_std[this_pix]
-#     min_dist = dist_mean[this_pix] - 2*dist_std[this_pix]
-#     min_z = z_at_value(cosmo_high.luminosity_distance, min_dist*u.mpc, zmin=-200, zmax=200)
-#     max_z = z_at_value(cosmo_low.luminosity_distance, max_dist*u.mpc, zmin=-200, zmax=200)
-#     if PS1_z[i] + PS1_z_err[i] < min_z or PS1_z[i] - PS1_z_err[i] < max_z:
+#     if (PS1_z[i] + PS1_z_err[i] < (20 * (dist_mean[this_pix] - 2 * dist_std[this_pix])) / c) or (PS1_z[i] - PS1_z_err[i] > (150 * (dist_mean[this_pix] + 2 * dist_std[this_pix])) / c):
 #         PS1_bools[i] = False
-# print("Starting Glade Redshift Limit")
-# perc_now = 0
+#     if PS1_bools[i]:
+#         if PS1_z_err[i]/PS1_z[i] > rel_uncert_max:
+#             PS1_bools[i] = False
+#             rel_i = rel_i + 1
+#     if PS1_bools[i]:
+#         if PS1_z[i] > abs_z_max or PS1_z[i] < abs_z_min:
+#             PS1_bools[i] = False
+#             abs_i = abs_i + 1
+#
 # for i in range(len(GLADE_bools)):
-#     if (i / len(GLADE_bools)) * 100 >= perc_now:
-#         print(str(perc_now) + "%")
-#         perc_now = perc_now + 5
 #     phi = np.deg2rad(GLADE_ra[i])
-#     theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
+#     theta = 0.5*np.pi - np.deg2rad(GLADE_dec[i])
 #     this_pix = hp.ang2pix(nside, theta, phi)
-#     max_dist = dist_mean[this_pix] + 2*dist_std[this_pix]
-#     min_dist = dist_mean[this_pix] - 2*dist_std[this_pix]
-#     min_z = z_at_value(cosmo_high.luminosity_distance, min_dist*u.mpc, zmin=-200, zmax=200)
-#     max_z = z_at_value(cosmo_low.luminosity_distance, max_dist*u.mpc, zmin=-200, zmax=200)
-#     if GLADE_z[i] < min_z or GLADE_z[i] < max_z:
-#         PS1_bools[i] = False
-
-print("PS1 Redshift out of bounds: " + str((len([x for x in PS1_bools if not x])/len(PS1_bools))*100) + "%")
-print("GLADE Redshift out of bounds: " + str((len([x for x in GLADE_bools if not x])/len(GLADE_bools))*100) + "%")
-print("Relative Cut Off: " + str(rel_i))
-print("Abs Cut Off: " + str(abs_i))
-
-PS1 = [PS1[x] for x in range(len(PS1)) if PS1_bools[x]]
-print("New Len PS1: " + str(len(PS1)))
-print("PS1 Min z = " + str(min([x[7] for x in PS1])) + ", Max z = " + str(max([x[7] for x in PS1])))
-
-GLADE = [GLADE[x] for x in range(len(GLADE)) if GLADE_bools[x]]
-print("New Len GLADE: " + str(len(GLADE)))
-print("GLADE Min z = " + str(min([x[15] for x in GLADE])) + ", Max z = " + str(max([x[15] for x in GLADE])))
-print("Finished Limit Redshift: " + str(datetime.now() - start))
+#     if (GLADE_z[i]+GLADE_z_err[i] < (20 * (dist_mean[this_pix] - 2*dist_std[this_pix]))/c) or (GLADE_z[i]-GLADE_z_err[i] > (150 * (dist_mean[this_pix] + 2*dist_std[this_pix]))/c):
+#         GLADE_bools[i] = False
+#
+# print("PS1 Redshift out of bounds: " + str((len([x for x in PS1_bools if not x])/len(PS1_bools))*100) + "%")
+# print("GLADE Redshift out of bounds: " + str((len([x for x in GLADE_bools if not x])/len(GLADE_bools))*100) + "%")
+# print("Relative Cut Off: " + str(rel_i))
+# print("Abs Cut Off: " + str(abs_i))
+#
+# PS1 = [PS1[x] for x in range(len(PS1)) if PS1_bools[x]]
+# print("New Len PS1: " + str(len(PS1)))
+# print("PS1 Min z = " + str(min([x[7] for x in PS1])) + ", Max z = " + str(max([x[7] for x in PS1])))
+#
+# GLADE = [GLADE[x] for x in range(len(GLADE)) if GLADE_bools[x]]
+# print("New Len GLADE: " + str(len(GLADE)))
+# print("GLADE Min z = " + str(min([x[15] for x in GLADE])) + ", Max z = " + str(max([x[15] for x in GLADE])))
+# print("Finished Limit Redshift: " + str(datetime.now() - start))
 
 
 ### Cross Match
@@ -260,12 +227,12 @@ z_diff = [abs(PS1_z[PS1_indexes[x]] - GLADE_z[GLADE_indexs[x]]) for x in range(l
 # plt.ylabel("Frequency of difference")
 # plt.savefig("images/Crossmatch Band diff.png", bbox_inches="tight", dpi=300)
 
-plt.figure(5)
-plt.hist([x for x in z_diff if x < 0.25], bins=20)
-plt.title("Histogram of Red Shift difference of GLADE and PS1 Cross Match")
-plt.xlabel("Red Shift Difference")
-plt.ylabel("Frequency of difference")
-plt.savefig("images/Red Shift diff.png", bbox_inches="tight", dpi=300)
+# plt.figure(5)
+# plt.hist([x for x in z_diff if x < 0.25], bins=20)
+# plt.title("Histogram of Red Shift difference of GLADE and PS1 Cross Match")
+# plt.xlabel("Red Shift Difference")
+# plt.ylabel("Frequency of difference")
+# plt.savefig("images/Red Shift diff.png", bbox_inches="tight", dpi=300)
 
 # Get Rid of Cross Match PS1 Galaxies
 PS1_good_indexes = [x for x in range(len(PS1)) if x not in PS1_indexes]
@@ -347,13 +314,13 @@ if plotting:
 if write_csv:
     start = datetime.now()
     print("Starting Write to CSV - " + str(start.time()))
-    with open("local_data/PS1_new_limit.csv", mode='w') as PS1_file:
+    with open("local_data/PS1_new_limit_noZlimit.csv", mode='w') as PS1_file:
         PS1_csv = csv.writer(PS1_file, delimiter = ',')
         PS1_csv.writerow(PS1_new_columns)
         for PS1_row in PS1:
             PS1_csv.writerow(PS1_row)
 
-    with open("local_data/GLADE_new_limit.csv", mode='w') as GLADE_file:
+    with open("local_data/GLADE_new_limit_noZlimit.csv", mode='w') as GLADE_file:
         GLADE_csv = csv.writer(GLADE_file, delimiter = ',')
         GLADE_csv.writerow([GLADE_columns[0], GLADE_columns[1], GLADE_columns[2], GLADE_columns[8], GLADE_columns[9], GLADE_columns[13], GLADE_columns[14], GLADE_columns[15], "z_err", GLADE_columns[16]])
         # GLADE_csv.writerow([GLADE_columns[x] for x in GLADE_good_columns])

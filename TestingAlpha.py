@@ -8,6 +8,8 @@ from ligo.skymap.postprocess import find_greedy_credible_levels
 from mpl_toolkits.basemap import Basemap
 import matplotlib.cm as cm
 from ligo.skymap import distance
+import scipy.stats
+import random
 
 #region Old Maps, Fits, CSV upload, DES
 ## DRAW GLOBE
@@ -160,11 +162,33 @@ print("\nGLADE Columns")
 for i in range(len(GLADE_columns)):
     print(i,GLADE_columns[i])
 
-# h0 = np.array([1,1,1,1,2,3,4])
-# probs = np.array([0.25, 0.25,0.25,0.25,3, 0.6, 0.01])
-# plt.figure(1)
-# plt.hist(h0, weights=probs/max(probs), density=False)
-# plt.savefig("images/aaaaaaaaaH0 PDF hist TEST.png", bbox_inches = "tight", dpi = 300)
+# x = np.linspace(0,10,100)
+# y = x**2
+# x2 = np.linspace(0,10,200)
+# y2 = np.interp(x2, x, y)
+# print(x2)
+# print(y2)
+#
+# # h0 = np.array([1,1,1,1,2,3,4])
+# # probs = np.array([0.25, 0.25,0.25,0.25,3, 0.6, 0.01])
+# # plt.figure(1)
+# # plt.hist(h0, weights=probs/max(probs), density=False)
+# # plt.savefig("images/aaaaaaaaaH0 PDF hist TEST.png", bbox_inches = "tight", dpi = 300)
+#
+# x = scipy.stats.norm(loc = 5, scale = 1.5).pdf(np.linspace(0,10,1000))
+# # print(np.trapz(y2, x=x2))
+# print(type(x))
+# print(x)
+
+
+x = np.linspace(0,10,10)
+y = scipy.stats.norm.pdf(x= x, loc=5, scale = 1.5)*9
+y = np.append(np.array([0,0,0,0,0,0]),y)
+print(y)
+print(np.trapz(y))
+y = y/np.linalg.norm(y)
+print(y)
+print(np.trapz(y), )
 
 
 

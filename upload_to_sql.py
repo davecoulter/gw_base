@@ -1,7 +1,7 @@
 from database_methods import *
-upload_csv = "local_data/PS1_new_limit.csv"
+upload_csv = "local_data/PS1_new_limit_noZlimit.csv"
 upload_sql = """LOAD DATA LOCAL INFILE '%s' 
-                    INTO TABLE PS1_Galaxy_Final_PS 
+                    INTO TABLE PS1_Galaxy_noZlimit 
                     FIELDS TERMINATED BY ',' 
                     LINES TERMINATED BY '\n' 
                     IGNORE 1 ROWS;"""

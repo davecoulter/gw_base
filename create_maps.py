@@ -174,28 +174,28 @@ for i in range(len(GLADE_ra)):
     hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
     index_hubble = index_hubble + 1
 # Calculate Hubble Const
-H0_min = 20
-H0_max = 300
-# H0_gauss_funcs = [lambda x: hubble_const_probs[i]* gaussian(x=x, mu=hubble_const[i], sig=hubble_const_err[i]) for i in range(len(hubble_const))]
-H0_gauss_funcs = [lambda x: gaussian_func(x=x, norm=hubble_const_probs[i], mean=hubble_const[i], sigma=hubble_const_err[i]) for i in range(len(hubble_const)) if H0_min <= hubble_const[i] <= H0_max]
-print("Len Gauss Funcs: " + str(len(H0_gauss_funcs)))
-print(type(H0_gauss_funcs[0]))
-H0_input = np.arange(start=H0_min, stop=H0_max+1, step=5, dtype=float)
-H0_input_probs = np.zeros(len(H0_input))
-for i in range(len(H0_input)):
-    H0_input_probs[i] = sum([y(H0_input[i]) for y in H0_gauss_funcs])
-integrate_sum = 0
-for i in range(len(H0_input_probs)-1):
-    integrate_sum = integrate_sum + ((H0_input_probs[i] + H0_input_probs[i+1])/2)*(H0_input[i+1] - H0_input[i])
-H0_input_probs = H0_input_probs/integrate_sum
+# H0_min = 20
+# H0_max = 300
+# # H0_gauss_funcs = [lambda x: hubble_const_probs[i]* gaussian(x=x, mu=hubble_const[i], sig=hubble_const_err[i]) for i in range(len(hubble_const))]
+# H0_gauss_funcs = [lambda x: gaussian_func(x=x, norm=hubble_const_probs[i], mean=hubble_const[i], sigma=hubble_const_err[i]) for i in range(len(hubble_const)) if H0_min <= hubble_const[i] <= H0_max]
+# print("Len Gauss Funcs: " + str(len(H0_gauss_funcs)))
+# print(type(H0_gauss_funcs[0]))
+# H0_input = np.arange(start=H0_min, stop=H0_max+1, step=5, dtype=float)
+# H0_input_probs = np.zeros(len(H0_input))
+# for i in range(len(H0_input)):
+#     H0_input_probs[i] = sum([y(H0_input[i]) for y in H0_gauss_funcs])
+# integrate_sum = 0
+# for i in range(len(H0_input_probs)-1):
+#     integrate_sum = integrate_sum + ((H0_input_probs[i] + H0_input_probs[i+1])/2)*(H0_input[i+1] - H0_input[i])
+# H0_input_probs = H0_input_probs/integrate_sum
 # H0_input_probs = np.array([sum([y(x) for y in H0_gauss_funcs]) for x in H0_input])
 
 
 ### Dave H0 Calculation
 print("\n\nDoing Dave H0 Calculation")
-H0_dist = [scipy.stats.norm(loc = hubble_const[x], scale = hubble_const_err[x]) for x in range(len(hubble_const)) if 20 <= hubble_const[x] <= 150]
-limit_hubble_const_probs = [hubble_const_probs[x] for x in range(len(hubble_const_probs))if 20 <= hubble_const[x] <= 150]
-H0_input_dave = np.linspace(20, 150, 500)
+H0_dist = [scipy.stats.norm(loc = hubble_const[x], scale = hubble_const_err[x]) for x in range(len(hubble_const)) if -0 <= hubble_const[x] <= 140]
+limit_hubble_const_probs = [hubble_const_probs[x] for x in range(len(hubble_const_probs))if -0 <= hubble_const[x] <= 140]
+H0_input_dave = np.linspace(-0, 140, 500)
 H0_phot_sum = np.zeros(len(H0_input_dave))
 # for i in range(len(H0_dist)):
 #     dist = H0_dist[i]
@@ -253,33 +253,6 @@ plt.axvline(x = H0_input_dave[interval_84], color = "red", linestyle = "dashed")
 plt.legend()
 plt.savefig("images/TESTINNG DAVE H0 PDF.png", bbox_inches = "tight", dpi = 300)
 #endregion
-
-
-
-
-#region###H0 Calculations new
-num = 100
-H0_dist = [[] for i in range(len(PS1_ra) + len(GLADE_ra))]
-index_hubble = 0
-for i in range(len(PS1_ra)):
-    phi = np.deg2rad(PS1_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    redshift_dist = np.linspace(PS1_z[i] - PS1_z_err[i]*3, PS1_z[i] + PS1_z_err[i]*3, num)
-    H0_dist[index_hubble] = c*PS1_z[i]/PS1_dist[i]
-    hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((PS1_z[i]/PS1_z_err[i])**2) + ((PS1_dist[i]/PS1_dist_err[i])**2))
-    hubble_const_probs[index_hubble] = (PS1_probs[i]/galaxies_in_pixel[this_pix])/(PS1_z[i]**3)
-    index_hubble = index_hubble + 1
-for i in range(len(GLADE_ra)):
-    phi = np.deg2rad(GLADE_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    hubble_const[index_hubble] = c*GLADE_z[i]/GLADE_dist[i]
-    hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
-    hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
-    index_hubble = index_hubble + 1
-#endregion
-
 
 
 
@@ -364,14 +337,14 @@ plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
 # # plt.savefig("images/HO PDF_inProgress.png", bbox_inches="tight", dpi=300)
 # plt.savefig("images/HO PDF_inProgress.png", bbox_inches="tight", dpi=300)
 
-plt.figure(8)
-print(H0_input_probs)
-plt.plot(H0_input, H0_input_probs)
-# plt.yscale('log')
-plt.title("H0 PDF")
-plt.xlabel("Hubble Constant (km/s/Mpc)")
-plt.ylabel("Probability of H0")
-plt.savefig("images/H0 PDF_inProgress.png", bbox_inches="tight", dpi=300)
+# plt.figure(8)
+# print(H0_input_probs)
+# plt.plot(H0_input, H0_input_probs)
+# # plt.yscale('log')
+# plt.title("H0 PDF")
+# plt.xlabel("Hubble Constant (km/s/Mpc)")
+# plt.ylabel("Probability of H0")
+# plt.savefig("images/H0 PDF_inProgress.png", bbox_inches="tight", dpi=300)
 
 print("Finished Plotting " + str(datetime.now() - start))
 

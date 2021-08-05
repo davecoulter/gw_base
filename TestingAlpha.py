@@ -183,12 +183,19 @@ for i in range(len(GLADE_columns)):
 
 x = np.linspace(0,10,10)
 y = scipy.stats.norm.pdf(x= x, loc=5, scale = 1.5)*9
-y = np.append(np.array([0,0,0,0,0,0]),y)
+# y = np.append(np.array([0,0,0,0,0,0]),y)
 print(y)
-print(np.trapz(y))
+print("Int:",np.trapz(y,x=x))
 y = y/np.linalg.norm(y)
 print(y)
-print(np.trapz(y), )
+print("Int:",np.trapz(y,x=x))
+y = y/np.linalg.norm(y)
+print(y)
+print("Int:",np.trapz(y,x=x))
+# for _ in range(5):
+#     y = y/np.linalg.norm(y)
+# print(y)
+# print("Int:",np.trapz(y,x=x))
 
 
 

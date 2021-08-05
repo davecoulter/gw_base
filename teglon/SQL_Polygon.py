@@ -1,5 +1,5 @@
 from Teglon_Shape import *
-
+from matplotlib.patches import Polygon
 
 class SQL_Polygon(Teglon_Shape):
 

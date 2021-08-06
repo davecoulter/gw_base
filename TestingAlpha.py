@@ -181,21 +181,28 @@ for i in range(len(GLADE_columns)):
 # print(x)
 
 
-x = np.linspace(0,10,10)
-y = scipy.stats.norm.pdf(x= x, loc=5, scale = 1.5)*9
-# y = np.append(np.array([0,0,0,0,0,0]),y)
-print(y)
-print("Int:",np.trapz(y,x=x))
-y = y/np.linalg.norm(y)
-print(y)
-print("Int:",np.trapz(y,x=x))
-y = y/np.linalg.norm(y)
-print(y)
-print("Int:",np.trapz(y,x=x))
-# for _ in range(5):
-#     y = y/np.linalg.norm(y)
+# x = np.linspace(0,10,10)
+# y = scipy.stats.norm.pdf(x= x, loc=5, scale = 1.5)*9
+# # y = np.append(np.array([0,0,0,0,0,0]),y)
 # print(y)
 # print("Int:",np.trapz(y,x=x))
+# y = y/np.linalg.norm(y)
+# print(y)
+# print("Int:",np.trapz(y,x=x))
+# y = y/np.linalg.norm(y)
+# print(y)
+# print("Int:",np.trapz(y,x=x))
+# # for _ in range(5):
+# #     y = y/np.linalg.norm(y)
+# # print(y)
+# # print("Int:",np.trapz(y,x=x))
+
+H0_bins = np.linspace(0,20,101)
+dH0 = H0_bins[1] - H0_bins[0]
+H0 = np.array([H0_bins[x]+(dH0/2) for x in range(len(H0_bins)-1)])
+print(H0_bins)
+print(len(H0))
+print(H0)
 
 
 

@@ -17,9 +17,9 @@ import scipy.stats
 import random
 
 c = 299792.458
-H0_min = 0
-H0_max = 140
-num = 1000
+H0_min = 20
+H0_max = 150
+num = 10000
 script_start = datetime.now()
 
 ### GRAVITATIONAL WAVE
@@ -124,7 +124,6 @@ plt.ylabel("Frequency of Galaxies")
 plt.legend()
 plt.savefig("images/Redshift Histogram (Combined).png", bbox_inches = "tight", dpi = 300)
 
-
 ### Galaxies per GW Pixel/Get Distance and Probs
 start = datetime.now()
 print("Starting Galaxy per Pixel - " + str(start.time()))
@@ -166,11 +165,12 @@ for i in range(len(GLADE_ra)):
 print("Finished Galaxy per Pixel/Get Distance and Probs: " + str(datetime.now() - start))
 ### Histogram of Distances
 plt.figure(14)
-plt.hist(np.append(PS1_distance, GLADE_distance), bins=20, color = "green")
-plt.title("Histogram of Distances of Galaxies")
+plt.hist(np.unique(np.append(PS1_distance, GLADE_distance)), bins=20)
+plt.title("Histogram of Unique Distances")
 plt.xlabel("Distance (Mpc)")
-plt.ylabel("Frequency of Galaxies with Distance")
+plt.ylabel("Frequency of Distance")
 plt.savefig("images/Distance Histogram.png", bbox_inches = "tight", dpi = 300)
+
 
 print("Min Redshift: " + str(min(np.append(PS1_z, GLADE_z))))
 print("Max Redshift: " + str(max(np.append(PS1_z, GLADE_z))))
@@ -185,157 +185,111 @@ print("Max UDistance: " + str(max(np.unique(np.append(PS1_distance + 3*PS1_dista
 ### H0 Calculation
 start = datetime.now()
 print("Start H0 Calculations - " + str(start.time()))
-H0_dist = [0 for _ in range(len(PS1_ra) + len(GLADE_ra))]
-H0_dist_prob = [0 for _ in range(len(H0_dist))]
-index_hubble = 0
+galaxy_z = np.append(PS1_z, GLADE_z)
+galaxy_z_err = np.append(PS1_z_err, GLADE_z_err)
+galaxy_distance = np.append(PS1_distance, GLADE_distance)
+galaxy_distance_err = np.append(PS1_distance_err, GLADE_distance_err)
+galaxy_weight = np.append(PS1_weight, GLADE_weight)
+
+### z-3*z_err = -6, z+3*z_err = 8.5, d-3*d_err = 96, d+3*d_err = 350
+z_dist = np.linspace(-6, 8.5, num)
+d_dist = np.linspace(96,350, num)
+H0_dist = c*z_dist/d_dist
+H0_dist_prob = [0 for _ in range(len(galaxy_z))]
 perc_now = 0
-rand_index = random.sample(range(len(H0_dist)), 5)
+rand_index = random.sample(range(len(galaxy_z)), 5)
 
-for i in range(len(PS1_ra)):
-    if index_hubble / len(H0_dist) >= perc_now / 100:
-        print(str(perc_now) + "%")
-        perc_now = perc_now + 10
-    phi = np.deg2rad(PS1_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    this_z_dist = np.linspace(PS1_z[i] - 3*PS1_z_err[i], PS1_z[i] + 3*PS1_z_err[i], num)
-    this_z_dist_prob = scipy.stats.norm.pdf(x=this_z_dist,loc = PS1_z[i], scale = PS1_z_err[i])
-    this_d_dist = np.linspace(PS1_distance[i] - 3*PS1_distance_err[i], PS1_distance[i] + 3*PS1_distance_err[i], num)
-    this_d_dist_prob = scipy.stats.norm.pdf(x=this_d_dist,loc = PS1_distance[i], scale = PS1_distance_err[i])
+for i in range(len(galaxy_z)):
+    this_z_dist_prob = scipy.stats.norm.pdf(x=z_dist,loc = galaxy_z[i], scale = galaxy_z_err[i])
+    this_d_dist_prob = scipy.stats.norm.pdf(x=d_dist,loc = galaxy_distance[i], scale = galaxy_distance_err[i])
     # Truncate and re-normalize dist
-    this_z_dist_prob = [0 if this_z_dist[x] <= 10**-4 else float(this_z_dist_prob[x]) for x in range(len(this_z_dist_prob))]
-    integral = np.trapz(this_z_dist_prob, x=this_z_dist)
+    this_z_dist_prob = np.array([0.0 if z_dist[x] <= 10**-4 else float(this_z_dist_prob[x]) for x in range(len(this_z_dist_prob))])
+    integral = np.trapz(this_z_dist_prob, x=z_dist)
     if integral != 0:
         this_z_dist_prob = this_z_dist_prob/integral
-    this_d_dist_prob = [0 if this_d_dist[x] <= 10**-4 else float(this_d_dist_prob[x]) for x in range(len(this_d_dist_prob))]
-    integral = np.trapz(this_d_dist_prob, x=this_d_dist)
+    this_d_dist_prob = np.array([0.0 if d_dist[x] <= 10**-4 else float(this_d_dist_prob[x]) for x in range(len(this_d_dist_prob))])
+    integral = np.trapz(this_d_dist_prob, x=d_dist)
     if integral != 0:
         this_d_dist_prob = this_d_dist_prob / integral
 
-
-
-    # ### SAMPLE REDSHIFT & DISTANCE PLOTS
-    # if index_hubble in rand_index or index_hubble == 7248:
-    #     plt.figure(index_hubble)
-    #     plt.plot(this_z_dist, this_z_dist_prob)
-    #     plt.title("Redshift PDF, Galaxy " + str(index_hubble))
-    #     plt.xlabel("Redshift")
-    #     plt.ylabel("Probability of Redshift")
-    #     plt.savefig("images/Redshift Sample PDF_"+str(index_hubble)+".png", bbox_inches="tight", dpi=300)
-    #     plt.close(index_hubble)
-    # if index_hubble in rand_index or index_hubble == 7248:
-    #     plt.figure(index_hubble)
-    #     plt.plot(this_d_dist, this_d_dist_prob)
-    #     plt.title("Distance PDF, Galaxy " + str(index_hubble))
-    #     plt.xlabel("Distance (Mpc)")
-    #     plt.ylabel("Probability of Distance")
-    #     plt.savefig("images/Distance Sample PDF_"+str(index_hubble)+".png", bbox_inches="tight", dpi=300)
-    #     plt.close(index_hubble)
-
-
-
+    ### SAMPLE REDSHIFT & DISTANCE PLOTS
+    if i in rand_index or i == 7248:
+        plt.figure(i)
+        plt.plot(z_dist, this_z_dist_prob)
+        plt.title("Redshift PDF, Galaxy " + str(i))
+        plt.xlabel("Redshift")
+        plt.ylabel("Probability of Redshift")
+        plt.savefig("images/Redshift Sample PDF_"+str(i)+".png", bbox_inches="tight", dpi=300)
+        plt.close(i)
+    if i in rand_index or i == 7248:
+        plt.figure(i)
+        plt.plot(d_dist, this_d_dist_prob)
+        plt.title("Distance PDF, Galaxy " + str(i))
+        plt.xlabel("Distance (Mpc)")
+        plt.ylabel("Probability of Distance")
+        plt.savefig("images/Distance Sample PDF_"+str(i)+".png", bbox_inches="tight", dpi=300)
+        plt.close(i)
 
     # Calculate H0 dist
-    H0_dist[index_hubble] = c * this_z_dist / this_d_dist
-    H0_dist_prob[index_hubble] = (this_z_dist_prob * this_d_dist_prob) * PS1_weight[i]
-    index_hubble = index_hubble + 1
-for i in range(len(GLADE_ra)):
-    if index_hubble / len(H0_dist) >= perc_now / 100:
-        print(str(perc_now) + "%")
-        perc_now = perc_now + 10
-    phi = np.deg2rad(GLADE_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    this_z_dist = np.linspace(GLADE_z[i] - 3*GLADE_z_err[i], GLADE_z[i] + 3*GLADE_z_err[i], num)
-    this_z_dist_prob = scipy.stats.norm.pdf(x=this_z_dist,loc = GLADE_z[i], scale = GLADE_z_err[i])
-    this_d_dist = np.linspace(GLADE_distance[i] - 3*GLADE_distance_err[i], GLADE_distance[i] + 3*GLADE_distance_err[i], num)
-    this_d_dist_prob = scipy.stats.norm.pdf(x=this_d_dist,loc = GLADE_distance[i], scale = GLADE_distance_err[i])
-    # Truncate and re-normalize dist
-    this_z_dist_prob = [0 if this_z_dist[x] <= 10**-4 else float(this_z_dist_prob[x]) for x in range(len(this_z_dist_prob))]
-    integral = np.trapz(this_z_dist_prob, x=this_z_dist)
-    if integral != 0:
-        this_z_dist_prob = this_z_dist_prob/integral
-    this_d_dist_prob = [0 if this_d_dist[x] <= 10**-4 else float(this_d_dist_prob[x]) for x in range(len(this_d_dist_prob))]
-    integral = np.trapz(this_d_dist_prob, x=this_d_dist)
-    if integral != 0:
-        this_d_dist_prob = this_d_dist_prob / integral
+    H0_dist_prob[i] = (this_z_dist_prob*this_d_dist_prob)*galaxy_weight[i]
 
-
-
-    # ### SAMPLE REDSHIFT & DISTANCE PLOTS
-    # if index_hubble in rand_index or index_hubble == 7248:
-    #     plt.figure(index_hubble)
-    #     plt.plot(this_z_dist, this_z_dist_prob)
-    #     plt.title("Redshift PDF, Galaxy " + str(index_hubble))
-    #     plt.xlabel("Redshift")
-    #     plt.ylabel("Probability of Redshift")
-    #     plt.savefig("images/Redshift Sample PDF_"+str(index_hubble)+".png", bbox_inches="tight", dpi=300)
-    #     plt.close(index_hubble)
-    # if index_hubble in rand_index or index_hubble == 7248:
-    #     plt.figure(index_hubble)
-    #     plt.plot(this_d_dist, this_d_dist_prob)
-    #     plt.title("Distance PDF, Galaxy " + str(index_hubble))
-    #     plt.xlabel("Distance (Mpc)")
-    #     plt.ylabel("Probability of Distance")
-    #     plt.savefig("images/Distance Sample PDF_"+str(index_hubble)+".png", bbox_inches="tight", dpi=300)
-    #     plt.close(index_hubble)
-
-
-
-    # Calculate H0 dist
-    H0_dist[index_hubble] = c * this_z_dist / this_d_dist
-    H0_dist_prob[index_hubble] = (this_z_dist_prob * this_d_dist_prob) * GLADE_weight[i]
-    index_hubble = index_hubble + 1
 print("100%")
 print("Finished H0 Calculations: " + str(datetime.now() - start))
 
 
 # SAMPLE H0 PLOTS
-# for i in rand_index+[7248]:
-#     plt.figure(index_hubble)
-#     plt.plot(H0_dist[i], H0_dist_prob[i])
-#     plt.title("Sample H0 PDF, Galaxy " + str(i))
-#     plt.xlabel("Hubble Constant (km/s/Mpc)")
-#     plt.ylabel("Probability of H0")
-#     plt.savefig("images/H0 Sample PDF_"+str(i)+".png", bbox_inches="tight", dpi=300)
-#     plt.close(index_hubble)
+for i in rand_index+[7248]:
+    plt.figure(i)
+    plt.plot(H0_dist, H0_dist_prob[i])
+    plt.title("Sample H0 PDF, Galaxy " + str(i))
+    plt.xlabel("Hubble Constant (km/s/Mpc)")
+    plt.ylabel("Probability of H0")
+    plt.savefig("images/H0 Sample PDF_"+str(i)+".png", bbox_inches="tight", dpi=300)
+    plt.close(i)
 
 
 # H0 PDF for each Galaxy
+print("Begin PDF for each Galaxy")
 plt.figure(3)
 neg_pdfs = 0
-for i in range(len(H0_dist)):
+new_H0_dist = np.array([H0_dist[x] for x in range(len(H0_dist)) if H0_min<=H0_dist[x]<=H0_max])
+for i in range(len(H0_dist_prob)):
+    H0_dist_prob[i] = np.array([0 if H0_dist_prob[i][x] < 10**-4 else float(H0_dist_prob[i][x]) for x in range(len(H0_dist_prob[i])) if H0_min<=H0_dist[x]<=H0_max])
+    integral = np.trapz(H0_dist_prob[i], x=new_H0_dist)
+    if integral != 0:
+        H0_dist_prob[i] = H0_dist_prob[i] / integral
+H0_dist_prob = [x for x in H0_dist_prob if sum(x) >= 10**-4]
+for i in range(len(H0_dist_prob)):
     if not any([x for x in H0_dist_prob[i] if x < 0]):
-        plt.plot(H0_dist[i], H0_dist_prob[i])
+        plt.plot(new_H0_dist, H0_dist_prob[i])
     else:
+        print("Galaxy Index Neg Prob: " +str(i))
         neg_pdfs = neg_pdfs + 1
 plt.title("H0 PDF for each Galaxy")
 plt.xlabel("Hubble Constant (km/s/Mpc)")
 plt.ylabel("Probability of H0")
-plt.xlim(0,150)
+# plt.xlim(0,140)
 plt.savefig("images/H0 PDF for each Galaxy.png", bbox_inches="tight", dpi=300)
 print("H0 with Neg Probs: " + str(neg_pdfs))
 
-# Add up Hubble Probs
-start = datetime.now()
-print("Starting Adding Hubble Probs - " + str(start.time()))
-new_H0_dist_bin = np.linspace(H0_min, H0_max, num+1)
-new_H0_dist = np.array([new_H0_dist_bin[i]+((new_H0_dist_bin[1]-new_H0_dist_bin[0])/2) for i in range(len(new_H0_dist_bin)-1)])
-new_H0_dist_prob = np.zeros(len(new_H0_dist))
-perc_now = 0
-for i in range(len(H0_dist)):
-    if i / len(H0_dist) >= perc_now / 100:
-        print(str(perc_now) + "%")
-        perc_now = perc_now + 10
-    if not any([x for x in H0_dist_prob[i] if x < 0]):
-        for ii in [x for x in range(len(H0_dist[i])) if H0_min<=H0_dist[i][x]<=H0_max]:
-            for new_index in range(len(new_H0_dist)):
-                if new_H0_dist_bin[new_index]<=H0_dist[i][ii]<new_H0_dist_bin[new_index+1]:
-                    new_H0_dist_prob[new_index] = new_H0_dist_prob[new_index] + H0_dist_prob[i][ii]
-            # new_H0_dist_prob[ii] = new_H0_dist_prob + np.interp(new_H0_dist, H0_dist[i], H0_dist_prob[i])
-new_H0_dist_prob = new_H0_dist_prob/np.trapz(new_H0_dist_prob, x=new_H0_dist)
-print("Finished Adding Hubble Probs: " + str(datetime.now()-start))
 
+
+
+
+# Add up Hubble Probs
+# new_H0_dist = np.linspace(H0_min, H0_max, num)
+# new_H0_dist = H0_dist
+new_H0_dist_prob = np.zeros(len(H0_dist))
+for i in range(len(new_H0_dist_prob)):
+    if not any([x for x in H0_dist_prob[i] if x < 0]):
+        # new_H0_dist_prob = new_H0_dist_prob + np.interp(new_H0_dist, H0_dist[i], H0_dist_prob[i])
+        new_H0_dist_prob = new_H0_dist_prob + new_H0_dist_prob[i]
+new_H0_dist = np.array([H0_dist[x] for x in range(len(H0_dist)) if 0<=H0_dist[x]<=140])
+new_H0_dist_prob = np.array([new_H0_dist_prob[x] for x in range(len(H0_dist)) if 0<=H0_dist[x]<=140])/np.trapz(np.array([new_H0_dist_prob[x] for x in range(len(H0_dist)) if 0<=H0_dist[x]<=140]), x=new_H0_dist)
+
+
+print(new_H0_dist)
+print(new_H0_dist_prob)
 #Get 16%, 50%, 84% confidence interval
 interval_16 = -1
 interval_50 = -1

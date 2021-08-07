@@ -17,9 +17,9 @@ import scipy.stats
 import random
 
 c = 299792.458
-H0_min = 0
-H0_max = 140
-num = 1000
+H0_min = 20
+H0_max = 150
+num = 500
 script_start = datetime.now()
 
 ### GRAVITATIONAL WAVE
@@ -116,13 +116,14 @@ plt.legend()
 plt.savefig("images/Redshift Histogram (Super Imposed).png", bbox_inches = "tight", dpi = 300)
 
 plt.figure(13)
-counts, bins, bars = plt.hist(PS1_z, bins=20, color = "orange",label = "PS1 Photometric Redshift")
-plt.hist(GLADE_z, bins=bins, color = "aqua", label = "GLADE Spectroscopic Redshift", rwidth = 0.8)
+counts, bins, bars = plt.hist(np.append(PS1_z,GLADE_z), bins=20, color = "orange",label = "PS1 Photometric Redshift", rwidth=0.9)
+plt.hist(GLADE_z, bins=bins, color = "aqua", label = "GLADE Spectroscopic Redshift", rwidth = 0.9)
 plt.title("Redshifts of Each Galaxy")
 plt.xlabel("Red Shift")
 plt.ylabel("Frequency of Galaxies")
 plt.legend()
 plt.savefig("images/Redshift Histogram (Combined).png", bbox_inches = "tight", dpi = 300)
+
 
 
 ### Galaxies per GW Pixel/Get Distance and Probs
@@ -355,7 +356,7 @@ frac_measurement = 100*(new_H0_dist[interval_84] - new_H0_dist[interval_16])/(2*
 plt.figure(1)
 plt.plot(new_H0_dist,new_H0_dist_prob, color = "blue")
 plt.axvline(x = new_H0_dist[interval_16], color = "red", linestyle = "dashed")
-plt.axvline(x = new_H0_dist[interval_50], color = "red", label = r"H0 = " + "%0.2f$^{+%0.2f}_{-%0.2f}$ (%0.2f%%)" % (new_H0_dist[interval_50], new_H0_dist[interval_84]-new_H0_dist[interval_50],new_H0_dist[interval_50]-new_H0_dist[interval_16], frac_measurement))
+plt.axvline(x = new_H0_dist[interval_50], color = "red", label = r"H_{0} = " + "%0.2f$^{+%0.2f}_{-%0.2f}$ km/s/Mpc (%0.2f%%)" % (new_H0_dist[interval_50], new_H0_dist[interval_84]-new_H0_dist[interval_50],new_H0_dist[interval_50]-new_H0_dist[interval_16], frac_measurement))
 plt.axvline(x = new_H0_dist[interval_84], color = "red", linestyle = "dashed")
 plt.title("H0 PDF")
 plt.xlabel("Hubble Constant (km/s/Mpc)")

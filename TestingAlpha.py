@@ -1,3 +1,4 @@
+import astropy.cosmology
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
@@ -10,6 +11,8 @@ import matplotlib.cm as cm
 from ligo.skymap import distance
 import scipy.stats
 import random
+from astropy.cosmology import *
+import astropy.units as u
 
 #region Old Maps, Fits, CSV upload, DES
 ## DRAW GLOBE
@@ -152,15 +155,15 @@ import random
 #     gw_dec = np.array(gw_dec)
 #endregion
 
-PS1_columns = "ObjID", "uniquePspsOBid", "raStack", "decStack", "raMean", "decMean", "ra", "dec", "ng", "gMeanPSFMag", "gMeanPSFMagErr", "gMeanKronMag", "gMeanKronMagErr", "gMeanApMag", "gMeanApMagErr", "nr", "rMeanPSFMag", "rMeanPSFMagErr", "rMeanKronMag", "rMeanKronMagErr", "rMeanApMag", "rMeanApMagErr", "ni", "iMeanPSFMag", "iMeanPSFMagErr", "iMeanKronMag", "iMeanKronMagErr", "iMeanApMag", "iMeanApMagErr", "nz", "zMeanPSFMag", "zMeanPSFMagErr", "zMeanKronMag", "zMeanKronMagErr", "zMeanApMag", "zMeanApMagErr", "ny", "yMeanPSFMag", "yMeanPSFMagErr", "yMeanKronMag", "yMeanKronMagErr", "yMeanApMag", "yMeanApMagErr", "gQfPerfect", "rQfPerfect", "iQfPerfect", "zQfPerfect", "yQfPerfect", "qualityFlag", "objInfoFlag", "primaryDetection", "bestDetection", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "z_phot0", "extrapolation_Photoz", "ps_score"
-PS1_new_columns = ["ObjID", "raMean", "decMean", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "ps_score"]
-GLADE_columns = "id", "Galaxy_id", "Distance_id", "PGC", "Name_GWGC", "Name_HyperLEDA", "Name_2MASS", "Name_SDSS_DR12", "RA", "_Dec", "Coord", "dist", "dist_err", "z_dist", "z_dist_err", "z", "B", "B_err", "B_abs", "J", "J_err", "H", "H_err", "K", "K_err", "flag1", "flag2", "flag3"
-print("PS1 Columns")
-for i in range(len(PS1_new_columns)):
-    print(i,PS1_new_columns[i])
-print("\nGLADE Columns")
-for i in range(len(GLADE_columns)):
-    print(i,GLADE_columns[i])
+# PS1_columns = "ObjID", "uniquePspsOBid", "raStack", "decStack", "raMean", "decMean", "ra", "dec", "ng", "gMeanPSFMag", "gMeanPSFMagErr", "gMeanKronMag", "gMeanKronMagErr", "gMeanApMag", "gMeanApMagErr", "nr", "rMeanPSFMag", "rMeanPSFMagErr", "rMeanKronMag", "rMeanKronMagErr", "rMeanApMag", "rMeanApMagErr", "ni", "iMeanPSFMag", "iMeanPSFMagErr", "iMeanKronMag", "iMeanKronMagErr", "iMeanApMag", "iMeanApMagErr", "nz", "zMeanPSFMag", "zMeanPSFMagErr", "zMeanKronMag", "zMeanKronMagErr", "zMeanApMag", "zMeanApMagErr", "ny", "yMeanPSFMag", "yMeanPSFMagErr", "yMeanKronMag", "yMeanKronMagErr", "yMeanApMag", "yMeanApMagErr", "gQfPerfect", "rQfPerfect", "iQfPerfect", "zQfPerfect", "yQfPerfect", "qualityFlag", "objInfoFlag", "primaryDetection", "bestDetection", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "z_phot0", "extrapolation_Photoz", "ps_score"
+# PS1_new_columns = ["ObjID", "raMean", "decMean", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "ps_score"]
+# GLADE_columns = "id", "Galaxy_id", "Distance_id", "PGC", "Name_GWGC", "Name_HyperLEDA", "Name_2MASS", "Name_SDSS_DR12", "RA", "_Dec", "Coord", "dist", "dist_err", "z_dist", "z_dist_err", "z", "B", "B_err", "B_abs", "J", "J_err", "H", "H_err", "K", "K_err", "flag1", "flag2", "flag3"
+# print("PS1 Columns")
+# for i in range(len(PS1_new_columns)):
+#     print(i,PS1_new_columns[i])
+# print("\nGLADE Columns")
+# for i in range(len(GLADE_columns)):
+#     print(i,GLADE_columns[i])
 
 # x = np.linspace(0,10,100)
 # y = x**2
@@ -197,16 +200,10 @@ for i in range(len(GLADE_columns)):
 # # print(y)
 # # print("Int:",np.trapz(y,x=x))
 
-H0_bins = np.linspace(0,20,101)
-dH0 = H0_bins[1] - H0_bins[0]
-H0 = np.array([H0_bins[x]+(dH0/2) for x in range(len(H0_bins)-1)])
-print(H0_bins)
-print(len(H0))
-print(H0)
-
-
-
-
+a = [1,1,1,1]
+b = [2,2,2]
+c = np.append(a,b)
+print(c[4:])
 
 
 

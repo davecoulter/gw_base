@@ -1,3 +1,4 @@
+import astropy.cosmology
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
@@ -12,7 +13,7 @@ import astropy.units as u
 
 script_start = datetime.now()
 
-plotting = False
+plotting = True
 write_csv = True
 
 PS1_columns = ["ObjID", "uniquePspsOBid", "raStack", "decStack", "raMean", "decMean", "ra", "dec", "ng", "gMeanPSFMag", "gMeanPSFMagErr", "gMeanKronMag", "gMeanKronMagErr", "gMeanApMag", "gMeanApMagErr", "nr", "rMeanPSFMag", "rMeanPSFMagErr", "rMeanKronMag", "rMeanKronMagErr", "rMeanApMag", "rMeanApMagErr", "ni", "iMeanPSFMag", "iMeanPSFMagErr", "iMeanKronMag", "iMeanKronMagErr", "iMeanApMag", "iMeanApMagErr", "nz", "zMeanPSFMag", "zMeanPSFMagErr", "zMeanKronMag", "zMeanKronMagErr", "zMeanApMag", "zMeanApMagErr", "ny", "yMeanPSFMag", "yMeanPSFMagErr", "yMeanKronMag", "yMeanKronMagErr", "yMeanApMag", "yMeanApMagErr", "gQfPerfect", "rQfPerfect", "iQfPerfect", "zQfPerfect", "yQfPerfect", "qualityFlag", "objInfoFlag", "primaryDetection", "bestDetection", "class", "prob_Galaxy", "prob_Star", "prob_QSO", "z_phot", "z_photErr", "z_phot0", "extrapolation_Photoz", "ps_score"]
@@ -132,10 +133,13 @@ print("Start Limit Redshift - " + str(start.time()))
 PS1_bools = np.ones(len(PS1), dtype=bool)
 GLADE_bools = np.ones(len(GLADE), dtype=bool)
 c = 299792.458
-rel_uncert_max = 2
-abs_z_min = -0.5
-abs_z_max = 1.5
+cosmo_high = astropy.cosmology.LambdaCDM(H0=20.0, Om0=0.27, Ode0=0.73)
+cosmo_low = astropy.cosmology.LambdaCDM(H0=150.0, Om0=0.27, Ode0=0.73)
+rel_uncert_max = 0.5
+abs_z_min = 0.01
+abs_z_max = 0.15
 
+wind_i = 0
 rel_i = 0
 abs_i = 0
 
@@ -143,34 +147,69 @@ for i in range(len(PS1_bools)):
     phi = np.deg2rad(PS1_ra[i])
     theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
     this_pix = hp.ang2pix(nside, theta, phi)
-    if (PS1_z[i] + PS1_z_err[i] < (20 * (dist_mean[this_pix] - 2 * dist_std[this_pix])) / c) or (PS1_z[i] - PS1_z_err[i] > (150 * (dist_mean[this_pix] + 2 * dist_std[this_pix])) / c):
+    if abs(PS1_z_err[i]/PS1_z[i]) > rel_uncert_max:
         PS1_bools[i] = False
-    if PS1_bools[i]:
-        if abs(PS1_z_err[i]/PS1_z[i]) > rel_uncert_max:
-            PS1_bools[i] = False
-            rel_i = rel_i + 1
+        rel_i = rel_i + 1
     if PS1_bools[i]:
         if PS1_z[i] > abs_z_max or PS1_z[i] < abs_z_min:
             PS1_bools[i] = False
             abs_i = abs_i + 1
+    if PS1_bools[i]:
+        if PS1_z[i]+PS1_z_err[i] < z_at_value(cosmo_high.luminosity_distance, (dist_mean[this_pix] - 2 * dist_std[this_pix])*u.Mpc) or PS1_z[i]-PS1_z_err[i] > z_at_value(cosmo_low.luminosity_distance, (dist_mean[this_pix] + 2 * dist_std[this_pix])*u.Mpc):
+            PS1_bools[i] = False
+            wind_i = wind_i + 1
 
 for i in range(len(GLADE_bools)):
     phi = np.deg2rad(GLADE_ra[i])
-    theta = 0.5*np.pi - np.deg2rad(GLADE_dec[i])
+    theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
     this_pix = hp.ang2pix(nside, theta, phi)
-    if (GLADE_z[i]+GLADE_z_err[i] < (20 * (dist_mean[this_pix] - 2*dist_std[this_pix]))/c) or (GLADE_z[i]-GLADE_z_err[i] > (150 * (dist_mean[this_pix] + 2*dist_std[this_pix]))/c):
+    if abs(GLADE_z_err[i]/GLADE_z[i]) > rel_uncert_max:
         GLADE_bools[i] = False
-    if GLADE_bools[i]:
-        if abs(GLADE_z_err[i]/GLADE_z[i]) > rel_uncert_max:
-            GLADE_bools[i] = False
-            rel_i = rel_i + 1
+        rel_i = rel_i + 1
     if GLADE_bools[i]:
         if GLADE_z[i] > abs_z_max or GLADE_z[i] < abs_z_min:
             PS1_bools[i] = False
             abs_i = abs_i + 1
+    if GLADE_bools[i]:
+        if GLADE_z[i]+GLADE_z_err[i] < z_at_value(cosmo_high.luminosity_distance, (dist_mean[this_pix] - 2 * dist_std[this_pix])*u.Mpc) or GLADE_z[i]-GLADE_z_err[i] > z_at_value(cosmo_low.luminosity_distance, (dist_mean[this_pix] + 2 * dist_std[this_pix])*u.Mpc):
+            GLADE_bools[i] = False
+            wind_i = wind_i + 1
+
+
+
+# for i in range(len(PS1_bools)):
+#     phi = np.deg2rad(PS1_ra[i])
+#     theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
+#     this_pix = hp.ang2pix(nside, theta, phi)
+#     if (PS1_z[i] + PS1_z_err[i] < (20 * (dist_mean[this_pix] - 2 * dist_std[this_pix])) / c) or (PS1_z[i] - PS1_z_err[i] > (150 * (dist_mean[this_pix] + 2 * dist_std[this_pix])) / c):
+#         PS1_bools[i] = False
+#     if PS1_bools[i]:
+#         if abs(PS1_z_err[i]/PS1_z[i]) > rel_uncert_max:
+#             PS1_bools[i] = False
+#             rel_i = rel_i + 1
+#     if PS1_bools[i]:
+#         if PS1_z[i] > abs_z_max or PS1_z[i] < abs_z_min:
+#             PS1_bools[i] = False
+#             abs_i = abs_i + 1
+#
+# for i in range(len(GLADE_bools)):
+#     phi = np.deg2rad(GLADE_ra[i])
+#     theta = 0.5*np.pi - np.deg2rad(GLADE_dec[i])
+#     this_pix = hp.ang2pix(nside, theta, phi)
+#     if (GLADE_z[i]+GLADE_z_err[i] < (20 * (dist_mean[this_pix] - 2*dist_std[this_pix]))/c) or (GLADE_z[i]-GLADE_z_err[i] > (150 * (dist_mean[this_pix] + 2*dist_std[this_pix]))/c):
+#         GLADE_bools[i] = False
+#     if GLADE_bools[i]:
+#         if abs(GLADE_z_err[i]/GLADE_z[i]) > rel_uncert_max:
+#             GLADE_bools[i] = False
+#             rel_i = rel_i + 1
+#     if GLADE_bools[i]:
+#         if GLADE_z[i] > abs_z_max or GLADE_z[i] < abs_z_min:
+#             PS1_bools[i] = False
+#             abs_i = abs_i + 1
 
 print("PS1 Redshift out of bounds: " + str((len([x for x in PS1_bools if not x])/len(PS1_bools))*100) + "%")
 print("GLADE Redshift out of bounds: " + str((len([x for x in GLADE_bools if not x])/len(GLADE_bools))*100) + "%")
+print("Window Cut Off: " + str(wind_i))
 print("Relative Cut Off: " + str(rel_i))
 print("Abs Cut Off: " + str(abs_i))
 
@@ -288,7 +327,7 @@ if plotting:
     for lh in leg.legendHandles:
         lh.set_alpha(1)
     plt.title("PanSTARRS1, GLADE, & GW190814 Positions")
-    plt.savefig("images/CSV_TESTING_Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
+    # plt.savefig("images/CSV_TESTING_Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
 
     ## Red shift Histogram - PS1
     plt.figure(3)
@@ -299,7 +338,7 @@ if plotting:
     plt.ylabel("Frequency of Galaxies")
     plt.savefig("images/CSV_TESTING_Z Hist PS1_inProgress.png", bbox_inches="tight", dpi=300)
 
-    ## Red shift Histogram - PS1
+    ## Red shift Histogram - GLADE
     plt.figure(4)
     # plt.hist([x for x in GLADE_z if 0 < x <= 1], bins=20)
     plt.hist(GLADE_z, bins=20)
@@ -314,7 +353,7 @@ if plotting:
     plt.title("Histogram of ps_score From PanSTARRS1")
     plt.xlabel("ps_score (0 is extended source, 1 is point source)")
     plt.ylabel("Frequency of ps_score")
-    plt.savefig("images/CSV_TESTING_ps_score Histogram.png", bbox_inches="tight", dpi=300)
+    # plt.savefig("images/CSV_TESTING_ps_score Histogram.png", bbox_inches="tight", dpi=300)
 
 
     print("Finished Plotting " + str(datetime.now() - start))

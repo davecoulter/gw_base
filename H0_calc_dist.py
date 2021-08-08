@@ -122,7 +122,9 @@ plt.title("Redshifts of Each Galaxy")
 plt.xlabel("Red Shift")
 plt.ylabel("Frequency of Galaxies")
 plt.legend()
-plt.savefig("images/Redshift Histogram (Combined).png", bbox_inches = "tight", dpi = 300)
+plt.savefig("images/Redshift Histogram (Combined) 2.png", bbox_inches = "tight", dpi = 300)
+
+raise Exception
 
 
 
@@ -171,7 +173,7 @@ plt.hist(np.append(PS1_distance, GLADE_distance), bins=20, color = "green")
 plt.title("Histogram of Distances of Galaxies")
 plt.xlabel("Distance (Mpc)")
 plt.ylabel("Frequency of Galaxies with Distance")
-plt.savefig("images/Distance Histogram.png", bbox_inches = "tight", dpi = 300)
+# plt.savefig("images/Distance Histogram.png", bbox_inches = "tight", dpi = 300)
 
 print("Min Redshift: " + str(min(np.append(PS1_z, GLADE_z))))
 print("Max Redshift: " + str(max(np.append(PS1_z, GLADE_z))))
@@ -314,7 +316,7 @@ plt.title("H0 PDF for each Galaxy")
 plt.xlabel("Hubble Constant (km/s/Mpc)")
 plt.ylabel("Probability of H0")
 plt.xlim(0,150)
-plt.savefig("images/H0 PDF for each Galaxy.png", bbox_inches="tight", dpi=300)
+# plt.savefig("images/H0 PDF for each Galaxy.png", bbox_inches="tight", dpi=300)
 print("H0 with Neg Probs: " + str(neg_pdfs))
 
 # Add up Hubble Probs
@@ -362,7 +364,7 @@ plt.title("H0 PDF")
 plt.xlabel("Hubble Constant (km/s/Mpc)")
 plt.ylabel("Probability of H0")
 plt.legend()
-plt.savefig("images/New Dist H0 PDF.png", bbox_inches = "tight", dpi = 300)
+# plt.savefig("images/New Dist H0 PDF.png", bbox_inches = "tight", dpi = 300)
 
 
 print("Finished Script: " + str(datetime.now() - script_start))

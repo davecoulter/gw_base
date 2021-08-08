@@ -14,6 +14,8 @@ import random
 from astropy.cosmology import *
 import astropy.units as u
 
+import os
+
 #region Old Maps, Fits, CSV upload, DES
 ## DRAW GLOBE
 # if False:
@@ -200,10 +202,33 @@ import astropy.units as u
 # # print(y)
 # # print("Int:",np.trapz(y,x=x))
 
-a = [1,1,1,1]
-b = [2,2,2]
-c = np.append(a,b)
-print(c[4:])
+num = 500
+GLADE_z = np.array([random.uniform(0,10) for _ in range(num)])
+PS1_z = np.array([random.uniform(0,10) for _ in range(num)])
+PS1e_z = np.array([random.uniform(0,15) for _ in range(num)])
+x = np.linspace(0,15, 100)
+y = x**2
 
 
 
+
+# ### PLOTTING REDSHIFT HISTOGRAM
+# print("Plotting Final Redshift Histogram")
+# fig, ax = plt.subplots()
+# ax2 = ax.twinx()
+#
+# counts, bins, bars = ax.hist(PS1e_z, bins=20, color = "red",label = "PS1 Photometric Redshift (Extended)", rwidth=0.9)
+#
+# print(len(bins))
+# ax.hist(np.append(PS1_z,GLADE_z), bins=bins, color = "orange",label = "PS1 Photometric Redshift", rwidth=0.9)
+# ax.hist(GLADE_z, bins=bins, color = "aqua", label = "GLADE Spectroscopic Redshift", rwidth = 0.9)
+#
+# ax2.plot(x,y)
+# ax2.set_ylabel("z^3")
+# plt.title("Redshifts of Each Galaxy")
+# ax.set_xlabel("Red Shift")
+# ax.set_ylabel("Frequency of Galaxies")
+# ax.legend(loc="upper left")
+# plt.savefig("images/TESTING Redshift Histogram CSV.png", bbox_inches = "tight", dpi = 300)
+
+print(np.linspace(0,0.3,21))

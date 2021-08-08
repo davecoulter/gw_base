@@ -89,6 +89,7 @@ print("Time to Complete: " + str(datetime.now() - start))
 ### Only Galaxies in 90% Intervals
 PS1_ra = np.array([x[1] for x in PS1])
 PS1_dec = np.array([x[2] for x in PS1])
+
 GLADE_ra = np.array([x[8] for x in GLADE])
 GLADE_dec = np.array([x[9] for x in GLADE])
 
@@ -118,6 +119,8 @@ print("New Len GLADE: " + str(len(GLADE)))
 print("Finished Limit to GW Zone: " + str(datetime.now() - start))
 
 
+
+
 ### Redshift Limit
 PS1_ra = np.array([x[1] for x in PS1])
 PS1_dec = np.array([x[2] for x in PS1])
@@ -132,6 +135,7 @@ start = datetime.now()
 print("Start Limit Redshift - " + str(start.time()))
 PS1_bools = np.ones(len(PS1), dtype=bool)
 GLADE_bools = np.ones(len(GLADE), dtype=bool)
+PS1e_bools = np.ones(len(PS1), dtype=bool)
 c = 299792.458
 cosmo_high = astropy.cosmology.LambdaCDM(H0=20.0, Om0=0.27, Ode0=0.73)
 cosmo_low = astropy.cosmology.LambdaCDM(H0=150.0, Om0=0.27, Ode0=0.73)
@@ -149,16 +153,19 @@ for i in range(len(PS1_bools)):
     this_pix = hp.ang2pix(nside, theta, phi)
     if abs(PS1_z_err[i]/PS1_z[i]) > rel_uncert_max:
         PS1_bools[i] = False
+        PS1e_bools[i] = False
         rel_i = rel_i + 1
-    if PS1_bools[i]:
+    if PS1_bools[i] or PS1e_bools[i]:
         if PS1_z[i] > abs_z_max or PS1_z[i] < abs_z_min:
             PS1_bools[i] = False
             abs_i = abs_i + 1
+        if PS1_z[i] > 0.3 or PS1_z[i] < abs_z_min:
+            PS1e_bools[i] = False
     if PS1_bools[i]:
         if PS1_z[i]+PS1_z_err[i] < z_at_value(cosmo_high.luminosity_distance, (dist_mean[this_pix] - 2 * dist_std[this_pix])*u.Mpc) or PS1_z[i]-PS1_z_err[i] > z_at_value(cosmo_low.luminosity_distance, (dist_mean[this_pix] + 2 * dist_std[this_pix])*u.Mpc):
             PS1_bools[i] = False
+            # PS1e_bools[i] = False
             wind_i = wind_i + 1
-
 for i in range(len(GLADE_bools)):
     phi = np.deg2rad(GLADE_ra[i])
     theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
@@ -208,13 +215,17 @@ for i in range(len(GLADE_bools)):
 #             abs_i = abs_i + 1
 
 print("PS1 Redshift out of bounds: " + str((len([x for x in PS1_bools if not x])/len(PS1_bools))*100) + "%")
+print("PS1e Redshift out of bounds: " + str((len([x for x in PS1e_bools if not x])/len(PS1e_bools))*100) + "%")
 print("GLADE Redshift out of bounds: " + str((len([x for x in GLADE_bools if not x])/len(GLADE_bools))*100) + "%")
 print("Window Cut Off: " + str(wind_i))
 print("Relative Cut Off: " + str(rel_i))
 print("Abs Cut Off: " + str(abs_i))
 
+print("Redshift Limit PS1e Bools: " + str(len([x for x in PS1e_bools if x])))
+PS1e = [PS1[x] for x in range(len(PS1)) if PS1e_bools[x]]
 PS1 = [PS1[x] for x in range(len(PS1)) if PS1_bools[x]]
 print("New Len PS1: " + str(len(PS1)))
+print("New Len PS1e: " + str(len(PS1e)))
 print("PS1 Min z = " + str(min([x[7] for x in PS1])) + ", Max z = " + str(max([x[7] for x in PS1])))
 
 GLADE = [GLADE[x] for x in range(len(GLADE)) if GLADE_bools[x]]
@@ -222,27 +233,22 @@ print("New Len GLADE: " + str(len(GLADE)))
 print("GLADE Min z = " + str(min([x[15] for x in GLADE])) + ", Max z = " + str(max([x[15] for x in GLADE])))
 print("Finished Limit Redshift: " + str(datetime.now() - start))
 
+# print("After Redshift Limit PS1e",PS1e)
 
 ### Cross Match
 PS1_ra = np.array([x[1] for x in PS1])
 PS1_dec = np.array([x[2] for x in PS1])
-PS1_z = np.array([x[7] for x in PS1])
-# PS1_b_band = np.array([x[11] for x in PS1])
+PS1e_ra = np.array([x[1] for x in PS1e])
+PS1e_dec = np.array([x[2] for x in PS1e])
 GLADE_ra = np.array([x[8] for x in GLADE])
 GLADE_dec = np.array([x[9] for x in GLADE])
-GLADE_z = np.array([x[15] for x in GLADE])
-GLADE_b_band = np.array([x[16] for x in GLADE])
-
-
-zed_perc = abs(np.array([x[8] for x in PS1])/PS1_z)*100
-print("Min z percent Error: " + str(min(zed_perc)) + "%")
-print("Max z percent Error: " + str(max(zed_perc)) + "%")
 
 
 start = datetime.now()
 print("Starting Cross Match - " + str(start.time()))
 nums = len(GLADE)
 cross_match = [[] for i in range(nums)]
+cross_match_e = [[] for i in range(nums)]
 dist_limit = 1 / 3600 # 1/3600 is 1 arcsecond in degrees
 print("Distance Limit: " + str(dist_limit * 3600) + " arcseconds")
 for i in range(nums):
@@ -255,37 +261,62 @@ for i in range(nums):
         dist = np.sqrt(((GLADE_ra[i] - PS1_ra[ps1_index]) ** 2) + ((GLADE_dec[i] - PS1_dec[ps1_index]) ** 2))
         if dist < dist_limit:
             cross_match[i] = cross_match[i] + [ps1_index]
+    local_PS1e_galaxies = [x for x in range(len(PS1e)) if (left <= PS1e_ra[x] <= right) and (lower <= PS1e_dec[x] <= upper)]
+    for ps1e_index in local_PS1e_galaxies:
+        dist = np.sqrt(((GLADE_ra[i] - PS1e_ra[ps1_index]) ** 2) + ((GLADE_dec[i] - PS1e_dec[ps1_index]) ** 2))
+        if dist < dist_limit:
+            cross_match_e[i] = cross_match_e[i] + [ps1e_index]
 print("Finished Cross Match: " + str(datetime.now() - start))
 print("Number of Cross Matches: " + str(len([x for x in cross_match if len(x) > 0])))
+print("Number of Cross Matches_e: " + str(len([x for x in cross_match_e if len(x) > 0])))
 print("Number of Cross Matches above 1: " + str(len([x for x in cross_match if len(x) > 1])))
+print("Number of Cross Matches_e above 1: " + str(len([x for x in cross_match_e if len(x) > 1])))
+
 
 start = datetime.now()
 print("Limiting PS1 Data and Making Histogram of Differences - " + str(start.time()))
-GLADE_indexs = [x for x in range(len(cross_match)) if len(cross_match[x]) > 0]
-PS1_indexes = [cross_match[x][0] for x in range(len(cross_match)) if len(cross_match[x]) > 0]
-# band_diff = [abs(PS1_b_band[PS1_indexes[x]] - GLADE_b_band[GLADE_indexs[:,x]]) for x in range(len(GLADE_indexs)) if (type(PS1_b_band[PS1_indexes[x]]) == float and type(GLADE_b_band[GLADE_indexs[x]]) == float)]
-z_diff = [abs(PS1_z[PS1_indexes[x]] - GLADE_z[GLADE_indexs[x]]) for x in range(len(GLADE_indexs)) if (type(PS1_z[PS1_indexes[x]]) == float and type(GLADE_z[GLADE_indexs[x]]) == float)]
 
-
-# plt.figure(1)
-# plt.hist([x for x in band_diff if x < 100], bins=20)
-# plt.title("Histogram of B-band and G-band difference of GLADE and PS1 Cross Match")
-# plt.xlabel("Band Difference (mags)")
-# plt.ylabel("Frequency of difference")
-# plt.savefig("images/Crossmatch Band diff.png", bbox_inches="tight", dpi=300)
-
-# plt.figure(5)
-# plt.hist([x for x in z_diff if x < 0.25], bins=20)
-# plt.title("Histogram of Red Shift difference of GLADE and PS1 Cross Match")
-# plt.xlabel("Red Shift Difference")
-# plt.ylabel("Frequency of difference")
-# plt.savefig("images/Red Shift diff.png", bbox_inches="tight", dpi=300)
 
 # Get Rid of Cross Match PS1 Galaxies
+PS1_indexes = [cross_match[x][0] for x in range(len(cross_match)) if len(cross_match[x]) > 0]
+PS1e_indexes = [cross_match_e[x][0] for x in range(len(cross_match_e)) if len(cross_match_e[x]) > 0]
 PS1_good_indexes = [x for x in range(len(PS1)) if x not in PS1_indexes]
+PS1e_good_indexes = [x for x in range(len(PS1e)) if x not in PS1e_indexes]
 PS1 = [PS1[x] for x in PS1_good_indexes]
+PS1e = [PS1e[x] for x in PS1e_good_indexes]
 print("New PS1 Len: " + str(len(PS1)))
 print("Finish Limiting PS1 Data: " + str(datetime.now() - start))
+
+
+
+
+
+
+
+# print("After Cross Match PS1e",PS1e)
+
+PS1_z = np.array([x[7] for x in PS1])
+PS1e_z = np.array([x[7] for x in PS1e])
+GLADE_z = np.array([x[15] for x in GLADE])
+print("Max PS1e Redshift", max(PS1e_z))
+print("Min Redshift: " + str(min(np.append(GLADE_z, PS1_z))))
+print("Min Redshift All: " + str(min(np.append(np.append(GLADE_z, PS1_z), PS1e_z))))
+
+### PLOTTING REDSHIFT HISTOGRAM
+print("Plotting Final Redshift Histogram")
+fig, ax = plt.subplots()
+ax2 = ax.twinx()
+counts, bins, bars = ax.hist(PS1e_z[np.where(PS1e_z>=0.15)], bins=np.linspace(0,0.3,21), color = "red",label = "PS1 Photometric Redshift (Extended)", rwidth=0.9)
+ax.hist(np.append(GLADE_z,PS1_z), bins=bins, color = "aqua",label = "GLADE Spectroscopic Redshift", rwidth=0.9)
+ax.hist(PS1_z, bins=bins, color = "orange", label = "PS1 Photometric Redshift", rwidth = 0.9)
+ax2.plot(bins, bins**3, color = "green", label = "Redshift Cubed")
+ax2.set_ylabel("Redshift Cubed")
+plt.title("Redshifts of Each Galaxy")
+ax.set_xlabel("Redshift")
+ax.set_ylabel("Frequency of Galaxies")
+ax.legend(loc="upper left")
+plt.savefig("images/Redshift Histogram CSV.png", bbox_inches = "tight", dpi = 300)
+print("Finished Plotting Final Redshift Histogram")
 
 
 ### PLOTTING

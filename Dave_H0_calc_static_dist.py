@@ -306,6 +306,16 @@ norm_final_h0[np.where(H0_arr < 20)] = 0
 norm_final_h0[np.where(H0_arr > 150)] = 0
 norm_final_h0 = norm_final_h0/np.trapz(norm_final_h0,x=H0_arr)
 
+
+def trapz(x,y):
+    integral = 0
+    for i in range(len(x)-1):
+        integral = integral + ((y[i] + y[i+1])/2) * (x[i+1] - x[i])
+    return integral
+
+print("Integral of PDF: " + str(np.trapz(norm_final_h0,x=H0_arr)))
+print("My Integral of PDF: " + str(trapz(H0_arr,norm_final_h0)))
+
 #Get 16%, 50%, 84% confidence interval
 interval_16 = -1
 interval_50 = -1
@@ -313,7 +323,8 @@ interval_84 = -1
 running_prob = 0
 dx = H0_arr[1] - H0_arr[0]
 for i in range(len(H0_arr)):
-    running_prob = running_prob + norm_final_h0[i]*dx
+    # running_prob = running_prob + norm_final_h0[i]*dx
+    running_prob = np.trapz(norm_final_h0[:i], x=H0_arr[:i])
     if interval_16 == -1 and running_prob >= 0.16:
         interval_16 = i
     if interval_50 == -1 and running_prob >= 0.50:
@@ -321,6 +332,8 @@ for i in range(len(H0_arr)):
     if interval_84 == -1 and running_prob >= 0.84:
         interval_84 = i
 frac_measurement = 100*(H0_arr[interval_84] - H0_arr[interval_16])/(2*H0_arr[interval_50])
+
+print("End Running Prob: " + str(running_prob)) # 3.20695516451
 
 plt.figure(109)
 plt.plot(H0_arr[np.where(H0_arr<=150)], norm_final_h0[np.where(H0_arr<=150)], color = "blue")

@@ -202,12 +202,7 @@ import os
 # # print(y)
 # # print("Int:",np.trapz(y,x=x))
 
-num = 500
-GLADE_z = np.array([random.uniform(0,10) for _ in range(num)])
-PS1_z = np.array([random.uniform(0,10) for _ in range(num)])
-PS1e_z = np.array([random.uniform(0,15) for _ in range(num)])
-x = np.linspace(0,15, 100)
-y = x**2
+
 
 
 
@@ -231,4 +226,8 @@ y = x**2
 # ax.legend(loc="upper left")
 # plt.savefig("images/TESTING Redshift Histogram CSV.png", bbox_inches = "tight", dpi = 300)
 
-print(np.linspace(0,0.3,21))
+num = 100
+x = np.linspace(0, 10, num)
+y = np.array([5 for _ in range(num)])
+y = x**2
+print(np.trapz(y, x=x))

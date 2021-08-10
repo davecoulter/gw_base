@@ -316,6 +316,18 @@ def trapz(x,y):
 print("Integral of PDF: " + str(np.trapz(norm_final_h0,x=H0_arr)))
 print("My Integral of PDF: " + str(trapz(H0_arr,norm_final_h0)))
 
+good_num = 114.86
+good_num_index = -1
+k = 0
+while good_num_index == -1:
+    if H0_arr[k] >= good_num:
+        good_num_index = k
+    k = k + 1
+good_num_index = good_num_index - 1
+print(H0_arr[good_num_index])
+print("Left Probability:",np.trapz(norm_final_h0[:good_num_index], x=H0_arr[:good_num_index]))
+print("Right Probability",np.trapz(norm_final_h0[good_num_index-1:], x=H0_arr[good_num_index-1:]))
+
 #Get 16%, 50%, 84% confidence interval
 interval_16 = -1
 interval_50 = -1
@@ -329,6 +341,7 @@ for i in range(len(H0_arr)):
         interval_16 = i
     if interval_50 == -1 and running_prob >= 0.50:
         interval_50 = i
+        print("50 Running Prob: " + str(running_prob))
     if interval_84 == -1 and running_prob >= 0.84:
         interval_84 = i
 frac_measurement = 100*(H0_arr[interval_84] - H0_arr[interval_16])/(2*H0_arr[interval_50])

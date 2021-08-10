@@ -212,16 +212,59 @@ class Teglon:
         sql_90_poly = SQL_Polygon(merged_90_poly)
         print("... done.")
 
-        fig = plt.figure(figsize=(10, 10), dpi=600)
+
+        ### START GALAXY QUERY
+        print("Start PS1 and GLADE Galaxy Query")
+        ## PS1 Galaxies
+        db_query = '''
+        SELECT raMean, decMean, z_phot FROM PS1_Galaxy_Final_PS;
+        '''
+        PS1 = query_db([db_query])[0]
+        PS1_ra = np.array([x[0] for x in PS1])
+        PS1_dec = np.array([x[1] for x in PS1])
+        PS1_z = np.array([x[2] for x in PS1])
+
+        ## GLADE Galaxies
+        db_query = '''
+        SELECT RA, _DEC, z FROM GLADE_Galaxy_Final 
+        WHERE 
+            (RA >= 10.0 AND
+            RA <= 15.0 AND
+            _DEC <= -22.0 AND
+            _DEC >= -28.0)
+            OR
+            (RA >= 20.0 AND
+            RA <= 24.0 AND
+            _DEC <= -30.0 AND
+            _DEC >= -34.0);
+        '''
+        GLADE = query_db([db_query])[0]
+        GLADE_ra = np.array([x[0] for x in GLADE])
+        GLADE_dec = np.array([x[1] for x in GLADE])
+        GLADE_z = np.array([x[2] for x in GLADE])
+
+        galaxy_ra = np.append(PS1_ra, GLADE_ra)
+        galaxy_dec = np.append(PS1_dec, GLADE_dec)
+        galaxy_z = np.append(PS1_z, GLADE_z)
+
+        print("End PS1 and GLADE Galaxy Query")
+
+        fig = plt.figure()
         ax = fig.add_subplot(111)
 
-        m = Basemap(projection='stere',
-                    lon_0=15.0,
-                    lat_0=-20.0,
-                    llcrnrlat=-35.0,
-                    urcrnrlat=-19.5,
-                    llcrnrlon=8.0,
-                    urcrnrlon=24.5)
+        # m = Basemap(projection='stere',
+        #             lon_0=15.0,
+        #             lat_0=-20.0,
+        #             llcrnrlat=-35.0,
+        #             urcrnrlat=-19.5,
+        #             llcrnrlon=8.0,
+        #             urcrnrlon=24.5)
+        ra_coords = [9, 26]
+        dec_coords = [-35, -21]
+        m = Basemap(llcrnrlon=ra_coords[1], llcrnrlat=dec_coords[0], urcrnrlon=ra_coords[0], urcrnrlat=dec_coords[1],
+                      projection='lcc', resolution='c', lat_0=(dec_coords[1] + dec_coords[0]) / 2,
+                      lon_0=(ra_coords[1] + ra_coords[0]) / 2)
+        # m = Basemap(projection='stere', llcrnrlon=25,llcrnrlat=-34, urcrnrlon=9, urcrnrlat=-22, lat_0=-28,lon_0=17.0)
 
         # Scale colormap
         pix_90 = map_pix_sorted[0:index_90th]
@@ -231,19 +274,33 @@ class Teglon:
         print("min prob: %s" % min_prob)
         print("max prob: %s" % max_prob)
 
-        norm = colors.Normalize(min_prob, max_prob)
+        norm = colors.Normalize(0.01, 0.15)
 
         print("Plotting (%s) `pixels`..." % len(pix_90))
-        for i, p in enumerate(pix_90):
-            p.plot(m, ax, facecolor=plt.cm.Greys(norm(p.prob)), edgecolor='None', linewidth=0.5,
-                   alpha=norm(p.prob) * 0.8)
+        # for i, p in enumerate(pix_90):
+            # p.plot(m, ax, facecolor=plt.cm.Greys(norm(p.prob)), edgecolor='None', linewidth=0.5,
+            #        alpha=norm(p.prob) * 0.8)
+        galaxy_x, galaxy_y = m(galaxy_ra, galaxy_dec)
+        m.scatter(galaxy_x, galaxy_y, marker='.', c=galaxy_z, zorder=1, alpha=1.0, s=5, cmap = plt.cm.plasma)
+
+        # sm = plt.cm.ScalarMappable(cmap=plt.cm.plasma)
+        # sm.set_array([])  # can be an empty list
+        # cb = fig.colorbar(sm, norm = norm, ax=ax, orientation='vertical')  # 0.08951
+        # # cb.ax.set_yticklabels(tks_strings) # , fontsize=16
+        # cb.set_label("2D Pixel Probability")
+
+        cbar = plt.colorbar()
+        cbar.ax.set_yticks(np.linspace(0.01,0.15, 11))
+        cbar.set_label("Galaxy Redshift")
 
         print("Plotting SQL Multipolygons")
 
-        sql_50_poly.plot(m, ax, edgecolor='black', linewidth=1.0, facecolor='None')
-        sql_90_poly.plot(m, ax, edgecolor='gray', linewidth=0.75, facecolor='None')
-        sql_50_poly.plot(m, ax, edgecolor='black', linewidth=2.0, facecolor='None')
-        sql_90_poly.plot(m, ax, edgecolor='black', linestyle="-", linewidth=1.5, facecolor='None')
+        # sql_50_poly.plot(m, ax, edgecolor='blue', linewidth=1.0, facecolor='None')
+        # sql_90_poly.plot(m, ax, edgecolor='green', linewidth=0.75, facecolor='None')
+        sql_50_poly.plot(m, ax, edgecolor='lime', linewidth=2.0, facecolor='None', zorder=2)
+        sql_90_poly.plot(m, ax, edgecolor='blue', linestyle="-", linewidth=1.5, facecolor='None', zorder=3)
+
+
 
         # draw parallels.
         sm_label_size = 18
@@ -268,65 +325,71 @@ class Teglon:
         _50_text_y = 0.37
         _50_text_x = 0.64
 
-        parallels = np.arange(-90., 90., 10.)
-        dec_ticks = m.drawparallels(parallels, labels=[0, 1, 0, 0])
-        for i, tick_obj in enumerate(dec_ticks):
-            a = coord.Angle(tick_obj, unit=u.deg)
+        # parallels = np.arange(-90., 90., 10.)
+        # dec_ticks = m.drawparallels(parallels, labels=[0, 1, 0, 0])
+        # for i, tick_obj in enumerate(dec_ticks):
+        #     a = coord.Angle(tick_obj, unit=u.deg)
+        #
+        #     for text_obj in dec_ticks[tick_obj][1]:
+        #         direction = '+' if a.dms[0] > 0.0 else '-'
+        #         text_obj.set_text(r'${0}{1:0g}^{{\degree}}$'.format(direction, np.abs(a.dms[0])))
+        #         text_obj.set_size(sm_label_size)
+        #         x = text_obj.get_position()[0]
+        #
+        #         new_x = x * (1.0 + 0.08)
+        #         text_obj.set_x(new_x)
+        #
+        # # draw meridians
+        # meridians = np.arange(0., 360., 7.5)
+        # ra_ticks = m.drawmeridians(meridians, labels=[0, 0, 0, 1])
 
-            for text_obj in dec_ticks[tick_obj][1]:
-                direction = '+' if a.dms[0] > 0.0 else '-'
-                text_obj.set_text(r'${0}{1:0g}^{{\degree}}$'.format(direction, np.abs(a.dms[0])))
-                text_obj.set_size(sm_label_size)
-                x = text_obj.get_position()[0]
+        parallels = np.arange(-90, 90, 2)
+        m.drawparallels(parallels, labels=[True, False, False, False], labelstyle="+/-")
+        meridians = np.arange(-180, 180, 5)
+        m.drawmeridians(meridians, labels=[False, False, False, True], labelstyle="+/-")
 
-                new_x = x * (1.0 + 0.08)
-                text_obj.set_x(new_x)
+        # RA_label_dict = {
+        #     7.5: r'$00^{\mathrm{h}}30^{\mathrm{m}}$',
+        #     15.0: r'$01^{\mathrm{h}}00^{\mathrm{m}}$',
+        #     22.5: r'$01^{\mathrm{h}}30^{\mathrm{m}}$',
+        #
+        # }
+        #
+        # for i, tick_obj in enumerate(ra_ticks):
+        #     for text_obj in ra_ticks[tick_obj][1]:
+        #         if tick_obj in RA_label_dict:
+        #             text_obj.set_text(RA_label_dict[tick_obj])
+        #             text_obj.set_size(sm_label_size)
 
-        # draw meridians
-        meridians = np.arange(0., 360., 7.5)
-        ra_ticks = m.drawmeridians(meridians, labels=[0, 0, 0, 1])
+        # sm = plt.cm.ScalarMappable(cmap=plt.cm.plasma)
+        # sm.set_array([])  # can be an empty list
+        #
+        # tks = np.linspace(min_prob, max_prob, 6)
+        # tks_strings = []
+        #
+        # for t in tks:
+        #     tks_strings.append('%0.2f' % (t * 100))
 
-        RA_label_dict = {
-            7.5: r'$00^{\mathrm{h}}30^{\mathrm{m}}$',
-            15.0: r'$01^{\mathrm{h}}00^{\mathrm{m}}$',
-            22.5: r'$01^{\mathrm{h}}30^{\mathrm{m}}$',
+        # cb = fig.colorbar(sm, ax=ax, orientation='vertical')  # 0.08951
+        # cb.ax.set_yticklabels(tks_strings) # , fontsize=16
+        # cb.set_label("2D Pixel Probability")
 
-        }
+        # cb.ax.tick_params(width=2.0, length=6.0)
 
-        for i, tick_obj in enumerate(ra_ticks):
-            for text_obj in ra_ticks[tick_obj][1]:
-                if tick_obj in RA_label_dict:
-                    text_obj.set_text(RA_label_dict[tick_obj])
-                    text_obj.set_size(sm_label_size)
+        # cb.outline.set_linewidth(2.0)
 
-        sm = plt.cm.ScalarMappable(norm=norm, cmap=plt.cm.Greys)
-        sm.set_array([])  # can be an empty list
+        # for axis in ['top', 'bottom', 'left', 'right']:
+        #     ax.spines[axis].set_linewidth(2.0)
 
-        tks = np.linspace(min_prob, max_prob, 6)
-        tks_strings = []
+        # ax.invert_xaxis()
 
-        for t in tks:
-            tks_strings.append('%0.2f' % (t * 100))
-
-        cb = fig.colorbar(sm, ax=ax, ticks=tks, orientation='vertical', fraction=0.04875, pad=0.02,
-                          alpha=0.80)  # 0.08951
-        cb.ax.set_yticklabels(tks_strings, fontsize=16)
-        cb.set_label("2D Pixel Probability", fontsize=label_size, labelpad=9.0)
-
-        cb.ax.tick_params(width=2.0, length=6.0)
-
-        cb.outline.set_linewidth(2.0)
-
-        for axis in ['top', 'bottom', 'left', 'right']:
-            ax.spines[axis].set_linewidth(2.0)
-
-        ax.invert_xaxis()
-
-        plt.ylabel(r'$\mathrm{Declination}$', fontsize=label_size, labelpad=36)
-        plt.xlabel(r'$\mathrm{Right\;Ascension}$', fontsize=label_size, labelpad=30)
+        # plt.ylabel(r'$\mathrm{Declination}$', fontsize=label_size, labelpad=36)
+        plt.ylabel(r'$\mathrm{Declination}$', labelpad=30)
+        plt.xlabel(r'$\mathrm{Right\;Ascension}$', labelpad=20)
+        plt.title("Pan-STARRS1 and GLADE Positions")
 
         fig.savefig("{}/Plots/GW190814_Contours.png".format(
-            self.options.healpix_dir.replace('{GWID}', self.options.gw_id)), bbox_inches='tight')
+            self.options.healpix_dir.replace('{GWID}', self.options.gw_id)), bbox_inches='tight', dpi=300)
         plt.close('all')
         print("... Done.")
 

@@ -123,136 +123,136 @@ print("Len GLADE = " + str(len(GLADE_ra)))
 print("Time to Complete: " + str(datetime.now() - start))
 
 
-### Galaxies per GW Pixel/Get Distance and Probs
-start = datetime.now()
-print("Starting Galaxy per Pixel - " + str(start.time()))
-PS1_dist = np.zeros(len(PS1_ra), dtype = float)
-PS1_dist_err = np.zeros(len(PS1_ra), dtype = float)
-PS1_probs = np.zeros(len(PS1_ra), dtype = float)
-GLADE_dist = np.zeros(len(GLADE_ra), dtype = float)
-GLADE_dist_err = np.zeros(len(GLADE_ra), dtype = float)
-GLADE_probs = np.zeros(len(GLADE_ra), dtype = float)
-galaxies_in_pixel = np.zeros(npix, dtype = int)
-for i in range(len(PS1_ra)):
-    phi = np.deg2rad(PS1_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    PS1_dist[i] = dist_mean[this_pix]
-    PS1_dist_err[i] = dist_std[this_pix]
-    PS1_probs[i] = 1 - credible_levels[this_pix]
-    galaxies_in_pixel[this_pix] = galaxies_in_pixel[this_pix] + 1
-for i in range(len(GLADE_ra)):
-    phi = np.deg2rad(GLADE_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    GLADE_dist[i] = dist_mean[this_pix]
-    GLADE_dist_err[i] = dist_std[this_pix]
-    GLADE_probs[i] = 1 - credible_levels[this_pix]
-    galaxies_in_pixel[this_pix] = galaxies_in_pixel[this_pix] + 1
-print("Pixel with 1 Galaxy: " + str(len([x for x in galaxies_in_pixel if x == 1])) + ", with 2 Galaxies: " + str(len([x for x in galaxies_in_pixel if x == 2])) + ", with 3+ Galaxies: " + str(len([x for x in galaxies_in_pixel if x >= 3])))
-print("Finished Galaxy per Pixel/Get Distance and Probs: " + str(datetime.now() - start))
-
-#region### H0 Calculations - Mine
-hubble_const = np.zeros(len(PS1_ra) + len(GLADE_ra), dtype=float)
-hubble_const_probs = np.zeros(len(hubble_const), dtype = float)
-hubble_const_err = np.zeros(len(hubble_const), dtype = float)
-index_hubble = 0
-for i in range(len(PS1_ra)):
-    phi = np.deg2rad(PS1_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    hubble_const[index_hubble] = c*PS1_z[i]/PS1_dist[i]
-    hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((PS1_z[i]/PS1_z_err[i])**2) + ((PS1_dist[i]/PS1_dist_err[i])**2))
-    hubble_const_probs[index_hubble] = (PS1_probs[i]/galaxies_in_pixel[this_pix])/(PS1_z[i]**3)
-    index_hubble = index_hubble + 1
-for i in range(len(GLADE_ra)):
-    phi = np.deg2rad(GLADE_ra[i])
-    theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
-    this_pix = hp.ang2pix(nside, theta, phi)
-    hubble_const[index_hubble] = c*GLADE_z[i]/GLADE_dist[i]
-    hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
-    hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
-    index_hubble = index_hubble + 1
-# Calculate Hubble Const
-# H0_min = 20
-# H0_max = 300
-# # H0_gauss_funcs = [lambda x: hubble_const_probs[i]* gaussian(x=x, mu=hubble_const[i], sig=hubble_const_err[i]) for i in range(len(hubble_const))]
-# H0_gauss_funcs = [lambda x: gaussian_func(x=x, norm=hubble_const_probs[i], mean=hubble_const[i], sigma=hubble_const_err[i]) for i in range(len(hubble_const)) if H0_min <= hubble_const[i] <= H0_max]
-# print("Len Gauss Funcs: " + str(len(H0_gauss_funcs)))
-# print(type(H0_gauss_funcs[0]))
-# H0_input = np.arange(start=H0_min, stop=H0_max+1, step=5, dtype=float)
-# H0_input_probs = np.zeros(len(H0_input))
-# for i in range(len(H0_input)):
-#     H0_input_probs[i] = sum([y(H0_input[i]) for y in H0_gauss_funcs])
+# ### Galaxies per GW Pixel/Get Distance and Probs
+# start = datetime.now()
+# print("Starting Galaxy per Pixel - " + str(start.time()))
+# PS1_dist = np.zeros(len(PS1_ra), dtype = float)
+# PS1_dist_err = np.zeros(len(PS1_ra), dtype = float)
+# PS1_probs = np.zeros(len(PS1_ra), dtype = float)
+# GLADE_dist = np.zeros(len(GLADE_ra), dtype = float)
+# GLADE_dist_err = np.zeros(len(GLADE_ra), dtype = float)
+# GLADE_probs = np.zeros(len(GLADE_ra), dtype = float)
+# galaxies_in_pixel = np.zeros(npix, dtype = int)
+# for i in range(len(PS1_ra)):
+#     phi = np.deg2rad(PS1_ra[i])
+#     theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
+#     this_pix = hp.ang2pix(nside, theta, phi)
+#     PS1_dist[i] = dist_mean[this_pix]
+#     PS1_dist_err[i] = dist_std[this_pix]
+#     PS1_probs[i] = 1 - credible_levels[this_pix]
+#     galaxies_in_pixel[this_pix] = galaxies_in_pixel[this_pix] + 1
+# for i in range(len(GLADE_ra)):
+#     phi = np.deg2rad(GLADE_ra[i])
+#     theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
+#     this_pix = hp.ang2pix(nside, theta, phi)
+#     GLADE_dist[i] = dist_mean[this_pix]
+#     GLADE_dist_err[i] = dist_std[this_pix]
+#     GLADE_probs[i] = 1 - credible_levels[this_pix]
+#     galaxies_in_pixel[this_pix] = galaxies_in_pixel[this_pix] + 1
+# print("Pixel with 1 Galaxy: " + str(len([x for x in galaxies_in_pixel if x == 1])) + ", with 2 Galaxies: " + str(len([x for x in galaxies_in_pixel if x == 2])) + ", with 3+ Galaxies: " + str(len([x for x in galaxies_in_pixel if x >= 3])))
+# print("Finished Galaxy per Pixel/Get Distance and Probs: " + str(datetime.now() - start))
+#
+# #region### H0 Calculations - Mine
+# hubble_const = np.zeros(len(PS1_ra) + len(GLADE_ra), dtype=float)
+# hubble_const_probs = np.zeros(len(hubble_const), dtype = float)
+# hubble_const_err = np.zeros(len(hubble_const), dtype = float)
+# index_hubble = 0
+# for i in range(len(PS1_ra)):
+#     phi = np.deg2rad(PS1_ra[i])
+#     theta = 0.5 * np.pi - np.deg2rad(PS1_dec[i])
+#     this_pix = hp.ang2pix(nside, theta, phi)
+#     hubble_const[index_hubble] = c*PS1_z[i]/PS1_dist[i]
+#     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((PS1_z[i]/PS1_z_err[i])**2) + ((PS1_dist[i]/PS1_dist_err[i])**2))
+#     hubble_const_probs[index_hubble] = (PS1_probs[i]/galaxies_in_pixel[this_pix])/(PS1_z[i]**3)
+#     index_hubble = index_hubble + 1
+# for i in range(len(GLADE_ra)):
+#     phi = np.deg2rad(GLADE_ra[i])
+#     theta = 0.5 * np.pi - np.deg2rad(GLADE_dec[i])
+#     this_pix = hp.ang2pix(nside, theta, phi)
+#     hubble_const[index_hubble] = c*GLADE_z[i]/GLADE_dist[i]
+#     hubble_const_err[index_hubble] = hubble_const[index_hubble] * np.sqrt(((GLADE_z[i] / GLADE_z_err[i]) ** 2) + ((GLADE_dist[i] / GLADE_dist_err[i]) ** 2))
+#     hubble_const_probs[index_hubble] = (GLADE_probs[i]/galaxies_in_pixel[this_pix])/(GLADE_z[i]**3)
+#     index_hubble = index_hubble + 1
+# # Calculate Hubble Const
+# # H0_min = 20
+# # H0_max = 300
+# # # H0_gauss_funcs = [lambda x: hubble_const_probs[i]* gaussian(x=x, mu=hubble_const[i], sig=hubble_const_err[i]) for i in range(len(hubble_const))]
+# # H0_gauss_funcs = [lambda x: gaussian_func(x=x, norm=hubble_const_probs[i], mean=hubble_const[i], sigma=hubble_const_err[i]) for i in range(len(hubble_const)) if H0_min <= hubble_const[i] <= H0_max]
+# # print("Len Gauss Funcs: " + str(len(H0_gauss_funcs)))
+# # print(type(H0_gauss_funcs[0]))
+# # H0_input = np.arange(start=H0_min, stop=H0_max+1, step=5, dtype=float)
+# # H0_input_probs = np.zeros(len(H0_input))
+# # for i in range(len(H0_input)):
+# #     H0_input_probs[i] = sum([y(H0_input[i]) for y in H0_gauss_funcs])
+# # integrate_sum = 0
+# # for i in range(len(H0_input_probs)-1):
+# #     integrate_sum = integrate_sum + ((H0_input_probs[i] + H0_input_probs[i+1])/2)*(H0_input[i+1] - H0_input[i])
+# # H0_input_probs = H0_input_probs/integrate_sum
+# # H0_input_probs = np.array([sum([y(x) for y in H0_gauss_funcs]) for x in H0_input])
+#
+#
+# ### Dave H0 Calculation
+# print("\n\nDoing Dave H0 Calculation")
+# H0_dist = [scipy.stats.norm(loc = hubble_const[x], scale = hubble_const_err[x]) for x in range(len(hubble_const)) if -0 <= hubble_const[x] <= 140]
+# limit_hubble_const_probs = [hubble_const_probs[x] for x in range(len(hubble_const_probs))if -0 <= hubble_const[x] <= 140]
+# H0_input_dave = np.linspace(-0, 140, 500)
+# H0_phot_sum = np.zeros(len(H0_input_dave))
+# # for i in range(len(H0_dist)):
+# #     dist = H0_dist[i]
+# #     prob = hubble_const_probs[i]
+# #     result = prob * dist.pdf(H0_input_dave)
+# #     # H0_phot_sum[i] = result
+# #     if i <= 5:
+# #         print(len(result))
+# # # print(H0_phot_sum)
+#
+# for i in range(len(H0_input_dave)):
+#     # print(len(H0_dist))
+#     # print(len(hubble_const_probs))
+#     # print(len(H0_phot_sum))
+#     # print(len(H0_input_dave))
+#     print(i)
+#     result = [limit_hubble_const_probs[x] * H0_dist[x].pdf(H0_input_dave[i]) for x in range(len(H0_dist))]
+#     result = [float(x) if x > 10**-10 else 0.0 for x in result]
+#     # print("Result:",result)
+#     H0_phot_sum[i] = sum(result)
+#     # print("H0 Prob Sum:", H0_phot_sum[i])
+#
+# # Normalize
 # integrate_sum = 0
-# for i in range(len(H0_input_probs)-1):
-#     integrate_sum = integrate_sum + ((H0_input_probs[i] + H0_input_probs[i+1])/2)*(H0_input[i+1] - H0_input[i])
-# H0_input_probs = H0_input_probs/integrate_sum
-# H0_input_probs = np.array([sum([y(x) for y in H0_gauss_funcs]) for x in H0_input])
-
-
-### Dave H0 Calculation
-print("\n\nDoing Dave H0 Calculation")
-H0_dist = [scipy.stats.norm(loc = hubble_const[x], scale = hubble_const_err[x]) for x in range(len(hubble_const)) if -0 <= hubble_const[x] <= 140]
-limit_hubble_const_probs = [hubble_const_probs[x] for x in range(len(hubble_const_probs))if -0 <= hubble_const[x] <= 140]
-H0_input_dave = np.linspace(-0, 140, 500)
-H0_phot_sum = np.zeros(len(H0_input_dave))
-# for i in range(len(H0_dist)):
-#     dist = H0_dist[i]
-#     prob = hubble_const_probs[i]
-#     result = prob * dist.pdf(H0_input_dave)
-#     # H0_phot_sum[i] = result
-#     if i <= 5:
-#         print(len(result))
-# # print(H0_phot_sum)
-
-for i in range(len(H0_input_dave)):
-    # print(len(H0_dist))
-    # print(len(hubble_const_probs))
-    # print(len(H0_phot_sum))
-    # print(len(H0_input_dave))
-    print(i)
-    result = [limit_hubble_const_probs[x] * H0_dist[x].pdf(H0_input_dave[i]) for x in range(len(H0_dist))]
-    result = [float(x) if x > 10**-10 else 0.0 for x in result]
-    # print("Result:",result)
-    H0_phot_sum[i] = sum(result)
-    # print("H0 Prob Sum:", H0_phot_sum[i])
-
-# Normalize
-integrate_sum = 0
-for i in range(len(H0_phot_sum)-1):
-    integrate_sum = integrate_sum + ((H0_phot_sum[i] + H0_phot_sum[i+1])/2)*(H0_input_dave[i+1] - H0_input_dave[i])
-H0_phot_sum = H0_phot_sum/integrate_sum
-# H0_mean = sum([H0_input_dave[x]*H0_phot_sum[x] for x in range(len(H0_input_dave))])/sum(H0_phot_sum)
-
-#Get 16%, 50%, 84% confidence interval
-interval_16 = -1
-interval_50 = -1
-interval_84 = -1
-running_prob = 0
-dx = H0_input_dave[1] - H0_input_dave[0]
-for i in range(len(H0_input_dave)):
-    running_prob = running_prob + H0_phot_sum[i]*dx
-    if interval_16 == -1 and running_prob >= 0.16:
-        interval_16 = i
-    if interval_50 == -1 and running_prob >= 0.50:
-        interval_50 = i
-    if interval_84 == -1 and running_prob >= 0.84:
-        interval_84 = i
-frac_measurement = 100*(H0_input_dave[interval_84] - H0_input_dave[interval_16])/(2*H0_input_dave[interval_50])
-
-plt.figure(23)
-plt.plot(H0_input_dave,H0_phot_sum, color = "blue")
-plt.xlabel("Hubble Constant (km/s/Mpc)")
-plt.ylabel("Probability of H0")
-plt.title("H0 PDF")
-plt.axvline(x = H0_input_dave[interval_16], color = "red", linestyle = "dashed")
-plt.axvline(x = H0_input_dave[interval_50], color = "red", label = r"H0 = " + "%0.2f$^{+%0.2f}_{-%0.2f}$ (%0.2f%%)" % (H0_input_dave[interval_50], H0_input_dave[interval_84]-H0_input_dave[interval_50],H0_input_dave[interval_50]-H0_input_dave[interval_16], frac_measurement))
-# plt.axvline(x = H0_input_dave[interval_50], color = "red", label = r"H0 = " + "${}^+{}_-{}$".format(H0_input_dave[interval_50], H0_input_dave[interval_84]-H0_input_dave[interval_50],H0_input_dave[interval_50]-H0_input_dave[interval_16]))
-plt.axvline(x = H0_input_dave[interval_84], color = "red", linestyle = "dashed")
-plt.legend()
-plt.savefig("images/TESTINNG DAVE H0 PDF.png", bbox_inches = "tight", dpi = 300)
-#endregion
+# for i in range(len(H0_phot_sum)-1):
+#     integrate_sum = integrate_sum + ((H0_phot_sum[i] + H0_phot_sum[i+1])/2)*(H0_input_dave[i+1] - H0_input_dave[i])
+# H0_phot_sum = H0_phot_sum/integrate_sum
+# # H0_mean = sum([H0_input_dave[x]*H0_phot_sum[x] for x in range(len(H0_input_dave))])/sum(H0_phot_sum)
+#
+# #Get 16%, 50%, 84% confidence interval
+# interval_16 = -1
+# interval_50 = -1
+# interval_84 = -1
+# running_prob = 0
+# dx = H0_input_dave[1] - H0_input_dave[0]
+# for i in range(len(H0_input_dave)):
+#     running_prob = running_prob + H0_phot_sum[i]*dx
+#     if interval_16 == -1 and running_prob >= 0.16:
+#         interval_16 = i
+#     if interval_50 == -1 and running_prob >= 0.50:
+#         interval_50 = i
+#     if interval_84 == -1 and running_prob >= 0.84:
+#         interval_84 = i
+# frac_measurement = 100*(H0_input_dave[interval_84] - H0_input_dave[interval_16])/(2*H0_input_dave[interval_50])
+#
+# plt.figure(23)
+# plt.plot(H0_input_dave,H0_phot_sum, color = "blue")
+# plt.xlabel("Hubble Constant (km/s/Mpc)")
+# plt.ylabel("Probability of H0")
+# plt.title("H0 PDF")
+# plt.axvline(x = H0_input_dave[interval_16], color = "red", linestyle = "dashed")
+# plt.axvline(x = H0_input_dave[interval_50], color = "red", label = r"H0 = " + "%0.2f$^{+%0.2f}_{-%0.2f}$ (%0.2f%%)" % (H0_input_dave[interval_50], H0_input_dave[interval_84]-H0_input_dave[interval_50],H0_input_dave[interval_50]-H0_input_dave[interval_16], frac_measurement))
+# # plt.axvline(x = H0_input_dave[interval_50], color = "red", label = r"H0 = " + "${}^+{}_-{}$".format(H0_input_dave[interval_50], H0_input_dave[interval_84]-H0_input_dave[interval_50],H0_input_dave[interval_50]-H0_input_dave[interval_16]))
+# plt.axvline(x = H0_input_dave[interval_84], color = "red", linestyle = "dashed")
+# plt.legend()
+# plt.savefig("images/TESTINNG DAVE H0 PDF.png", bbox_inches = "tight", dpi = 300)
+# #endregion
 
 
 
@@ -262,7 +262,10 @@ start = datetime.now()
 print("Start Plotting " + str(start.time()))
 fig = plt.figure(2)
 ax = fig.add_subplot(111)
-map = Basemap(width=2.5*(10**6),height=2.5*(10**6)*0.75,projection='lcc', resolution='c',lat_0=np.mean(gw_dec),lon_0=np.mean(gw_ra))
+# map = Basemap(width=2.5*(10**6),height=2.5*(10**6)*0.75,projection='lcc', resolution='c',lat_0=-28,lon_0=17.5)
+ra_coords = [9,26]
+dec_coords = [-35,-21]
+map = Basemap(llcrnrlon=ra_coords[1],llcrnrlat=dec_coords[0], urcrnrlon=ra_coords[0], urcrnrlat=dec_coords[1],projection='lcc', resolution='c',lat_0=(dec_coords[1] + dec_coords[0])/2,lon_0=(ra_coords[1] + ra_coords[0])/2)
 # map = Basemap(projection='lcc',
 #               resolution='c', lat_0=np.mean(gw_dec), lon_0=np.mean(gw_ra))
 # map.drawmapboundary(fill_color='aqua')
@@ -289,15 +292,21 @@ dot_alpha = 0.00
 map.scatter(gw_x, gw_y, marker='.', c = alphas, zorder = 10, alpha = 1)
 cbar = plt.colorbar()
 cbar.set_label("Probability")
-map.scatter(p_x, p_y, marker = 's', facecolors='none', edgecolors = 'hotpink', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
-map.scatter(g_x, g_y, marker = '^', facecolors='none', edgecolors ='hotpink', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
+cbar.set_ticks(np.linspace(0.0,1.0,11))
+# map.scatter(p_x, p_y, marker = 's', facecolors='none', edgecolors = 'hotpink', zorder = 10, alpha = dot_alpha, label = "PanSTARRS1\n" + "{:,}".format(len(p_x)) + " Galaxies")
+# map.scatter(g_x, g_y, marker = '^', facecolors='none', edgecolors ='hotpink', zorder=10, alpha=dot_alpha, label = "GLADE\n" + "{:,}".format(len(g_x)) + " Galaxies")
 plt.xlabel("Right Ascension", labelpad=20)
 plt.ylabel("Declination", labelpad=30)
-leg = plt.legend(loc=2, prop={'size': 6})
-for lh in leg.legendHandles:
-    lh.set_alpha(1)
-plt.title("PanSTARRS1, GLADE, & GW190814 Positions")
+# leg = plt.legend(loc=2, prop={'size': 6})
+# for lh in leg.legendHandles:
+#     lh.set_alpha(1)
+# # plt.xlim(10,10)
+# plt.ylim(-34,-22)
+plt.title("GW190814 Positions")
 plt.savefig("images/Zoomed Map_inProgress.png", bbox_inches = "tight", dpi = 300)
+
+
+
 
 
 ## PS1 ps_score
@@ -306,7 +315,7 @@ plt.hist(PS1_ps_score, bins=20)
 plt.title("Histogram of ps_score From PanSTARRS1 with Galaxy Restrictions")
 plt.xlabel("ps_score (0 is galaxy, 1 is star)")
 plt.ylabel("Frequency of ps_Score")
-plt.savefig("images/ps_score Histogram.png", bbox_inches="tight", dpi=300)
+# plt.savefig("images/ps_score Histogram.png", bbox_inches="tight", dpi=300)
 
 ## Red shift Histogram - PS1
 plt.figure(3)
@@ -315,7 +324,7 @@ plt.hist(PS1_z, bins=20)
 plt.title("Histogram of Redshifts from PanSTARRS1")
 plt.xlabel("Photometric Red Shift")
 plt.ylabel("Frequency of Galaxies")
-plt.savefig("images/Z Hist PS1_inProgress.png", bbox_inches = "tight", dpi = 300)
+# plt.savefig("images/Z Hist PS1_inProgress.png", bbox_inches = "tight", dpi = 300)
 
 ## Red shift Histogram - GLADE
 plt.figure(4)
@@ -324,7 +333,7 @@ plt.hist(GLADE_z, bins=20)
 plt.title("Histogram of Redshifts from GLADE")
 plt.xlabel("Spectroscopic Red Shift")
 plt.ylabel("Frequency of Galaxies")
-plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
+# plt.savefig("images/Z Hist GLADE_inProgress.png", bbox_inches="tight", dpi=300)
 
 ## H0 PDF
 # plt.figure(8)

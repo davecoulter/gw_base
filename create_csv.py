@@ -314,9 +314,66 @@ ax2.set_ylabel("Redshift Cubed")
 plt.title("Redshifts of Each Galaxy")
 ax.set_xlabel("Redshift")
 ax.set_ylabel("Frequency of Galaxies")
-ax.legend(loc="upper left")
+handles_2, labels_2 = ax2.get_legend_handles_labels()
+handles_1, labels_1 = ax.get_legend_handles_labels()
+ax.legend(handles=handles_1+handles_2, labels=labels_1+labels_2, loc = 2)
+ax.grid(linestyle="--")
 plt.savefig("images/Redshift Histogram CSV.png", bbox_inches = "tight", dpi = 300)
 print("Finished Plotting Final Redshift Histogram")
+
+## PLOTTING Cumulative Distribution Plot
+num = 200
+PS1a_z = np.append(PS1_z, PS1e_z[np.where(PS1e_z>=0.15)])
+
+PS1a_count, PS1a_bins = np.histogram(PS1a_z, bins = num)
+PS1a_cdf = np.cumsum(PS1a_count)#/len(np.append(PS1a_z, GLADE_z))
+PS1_count, PS1_bins = np.histogram(PS1_z, bins = num)
+PS1_cdf = np.cumsum(PS1_count)#/len(np.append(PS1a_z, GLADE_z))
+GLADE_count, GLADE_bins = np.histogram(GLADE_z, bins = num)
+GLADE_cdf = np.cumsum(GLADE_count)#/len(np.append(PS1a_z, GLADE_z))
+All_count, All_bins = np.histogram(np.append(PS1a_z, GLADE_z), bins = num)
+All_cdf = np.cumsum(All_count)#/len(np.append(PS1a_z, GLADE_z))
+
+total = np.sum(All_bins[1:] ** 3 + All_count[0])
+print("Total:",total)
+print("End Z^3 Value:",np.cumsum(All_bins[1:] ** 3)[-1]/total)
+
+PS1a_cdf = PS1a_cdf/total
+PS1_cdf = PS1_cdf/total
+GLADE_cdf = GLADE_cdf/total
+All_cdf = All_cdf/total
+
+print("Cum sum division: " + str(np.sum(All_bins[1:] ** 3)))
+
+fig, ax = plt.subplots()
+# ax2 = ax.twinx()
+# ax2.plot(All_bins[1:], All_bins[1:]**3, color = "green", label = "Redshift Cubed", zorder = 1)
+ax.plot(PS1a_bins[1:], PS1a_cdf, color = "red", label="PS1 (Extended)", linewidth = 3, zorder= 2)
+ax.plot(All_bins[1:], All_cdf, color = "magenta", label = "All Galaxies", linewidth = 3, zorder = 3)
+ax.plot(GLADE_bins[1:], GLADE_cdf, color = "aqua", label = "GLADE", linewidth = 3, zorder = 4)
+ax.plot(PS1_bins[1:], PS1_cdf, color = "orange", label="PS1", linewidth = 3, zorder= 5)
+ax.plot(All_bins[1:], np.cumsum(All_bins[1:] ** 3)/total, color = "green", label="Other Z^3", linewidth = 1, zorder= 0)
+ax2.set_ylabel("Redshift Cubed")
+ax.set_xlabel("Redshift")
+ax.set_ylabel("Cumulative Fraction")
+plt.title("Cumulative Distribution")
+# handles_2, labels_2 = ax2.get_legend_handles_labels()
+# handles_1, labels_1 = ax.get_legend_handles_labels()
+# ax.legend(handles=handles_1+handles_2, labels=labels_1+labels_2, loc = 2)
+ax.legend(loc=2)
+ax.grid(linestyle="--")
+plt.savefig("images/Cumulative Distribution Function.png", bbox_inches = "tight", dpi = 300)
+
+# # Dave's Cumulative Sum
+input = np.linspace(0.01, 0.3, 100) # range in redshift
+
+z_3 = lambda z: z**3.0 # model
+
+y1 = z_3(input) # model output (i.e. the model's prediction for # of galaxies)
+total1 = np.sum(y1) # total number of galaxies predicted by model (across all redshifts)
+yy1 = np.cumsum(y1) # cumlative sum of galaxies as function of redshift
+print("Total 1:",total1)
+
 
 
 ### PLOTTING

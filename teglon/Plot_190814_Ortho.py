@@ -248,8 +248,8 @@ class Teglon:
         galaxy_z = np.append(PS1_z, GLADE_z)
 
         print("End PS1 and GLADE Galaxy Query")
-
-        fig = plt.figure()
+        fig_size = 4
+        fig = plt.figure(figsize=(fig_size,fig_size*(3/4)))
         ax = fig.add_subplot(111)
 
         # m = Basemap(projection='stere',
@@ -281,7 +281,7 @@ class Teglon:
             # p.plot(m, ax, facecolor=plt.cm.Greys(norm(p.prob)), edgecolor='None', linewidth=0.5,
             #        alpha=norm(p.prob) * 0.8)
         galaxy_x, galaxy_y = m(galaxy_ra, galaxy_dec)
-        m.scatter(galaxy_x, galaxy_y, marker='.', c=galaxy_z, zorder=1, alpha=1.0, s=5, cmap = plt.cm.plasma)
+        m.scatter(galaxy_x, galaxy_y, marker='.', c=galaxy_z, zorder=1, alpha=1.0, s=2.5, cmap = plt.cm.plasma)
 
         # sm = plt.cm.ScalarMappable(cmap=plt.cm.plasma)
         # sm.set_array([])  # can be an empty list

@@ -219,67 +219,73 @@ for i in range(len(galaxy_z)):
         H0_distributions.append(H0_norm * galaxy_weight[i])
 
 
-    ### SAMPLE REDSHIFT & DISTANCE PLOTS
-    if i in rand_index or i == 408:
-        plt.figure(i)
-        plt.plot(redshift_arr, z_dist)
-        plt.title("Redshift PDF, Galaxy " + str(i))
-        plt.xlabel("Redshift")
-        plt.ylabel("Probability of Redshift")
-        # plt.savefig("images/Redshift Sample PDF_" + str(i) + ".png", bbox_inches="tight", dpi=300)
-        plt.close(i)
-        plt.figure(i)
-        plt.plot(distance_arr, d_dist)
-        plt.title("Distance PDF, Galaxy " + str(i))
-        plt.xlabel("Distance (Mpc)")
-        plt.ylabel("Probability of Distance")
-        # plt.savefig("images/Distance Sample PDF_" + str(i) + ".png", bbox_inches="tight", dpi=300)
-        plt.close(i)
-# SAMPLE H0 PLOTS
-for i in rand_index+[408]:
-    plt.figure(i)
-    plt.plot(H0_arr, H0_distributions[i])
-    plt.title("Sample H0 PDF, Galaxy " + str(i))
-    plt.xlabel("Hubble Constant (km/s/Mpc)")
-    plt.ylabel("Probability of H0")
-    # if i == 408:
-    #     plt.xlim(20,150)
-    # plt.savefig("images/H0 Sample PDF_"+str(i)+".png", bbox_inches="tight", dpi=300)
-    plt.close(i)
+#     ### SAMPLE REDSHIFT & DISTANCE PLOTS
+#     if i in rand_index or i == 408:
+#         plt.figure(i)
+#         plt.plot(redshift_arr, z_dist)
+#         plt.title("Redshift PDF, Galaxy " + str(i))
+#         plt.xlabel("Redshift")
+#         plt.ylabel("Probability of Redshift")
+#         # plt.savefig("images/Redshift Sample PDF_" + str(i) + ".png", bbox_inches="tight", dpi=300)
+#         plt.close(i)
+#         plt.figure(i)
+#         plt.plot(distance_arr, d_dist)
+#         plt.title("Distance PDF, Galaxy " + str(i))
+#         plt.xlabel("Distance (Mpc)")
+#         plt.ylabel("Probability of Distance")
+#         # plt.savefig("images/Distance Sample PDF_" + str(i) + ".png", bbox_inches="tight", dpi=300)
+#         plt.close(i)
+# # SAMPLE H0 PLOTS
+# for i in rand_index+[408]:
+#     plt.figure(i)
+#     plt.plot(H0_arr, H0_distributions[i])
+#     plt.title("Sample H0 PDF, Galaxy " + str(i))
+#     plt.xlabel("Hubble Constant (km/s/Mpc)")
+#     plt.ylabel("Probability of H0")
+#     # if i == 408:
+#     #     plt.xlim(20,150)
+#     # plt.savefig("images/H0 Sample PDF_"+str(i)+".png", bbox_inches="tight", dpi=300)
+#     plt.close(i)
 print("100%")
 print("Finished H0 Calculations: " + str(datetime.now() - start))
 print("Galaxies Ommited: " + str(omits_num))
 
 ### H0 PDF of Each Galaxy Superimposed
 print("H0 PDF of Each Galaxy Superimposed")
-plt.figure(76, figsize = (10,4))
-for i in range(len(H0_distributions))[:1334]:
-    plt.plot(H0_arr, H0_distributions[i])
-plt.title("All Galaxy H0 PDF - PS1")
-plt.xlabel("Hubble Constant (km/s/Mpc)")
-plt.ylabel("Probability of H0")
-# plt.xlim(10,160)
-plt.savefig("images/Dave H0 Superimposed - PS1.png", bbox_inches="tight", dpi=300)
-plt.close(76)
+# plt.figure(76, figsize = (10,4))
+# for i in range(len(H0_distributions))[:1334]:
+#     plt.plot(H0_arr, H0_distributions[i])
+# plt.title("All Galaxy H0 PDF - PS1")
+# plt.xlabel("Hubble Constant (km/s/Mpc)")
+# plt.ylabel("Probability of H0")
+# # plt.xlim(10,160)
+# plt.savefig("images/Dave H0 Superimposed - PS1.png", bbox_inches="tight", dpi=300)
+# plt.close(76)
+#
+# plt.figure(76, figsize = (10,4))
+# for i in range(len(H0_distributions))[1334:]:
+#     plt.plot(H0_arr, H0_distributions[i])
+# plt.title("All Galaxy H0 PDF - GLADE")
+# plt.xlabel("Hubble Constant (km/s/Mpc)")
+# plt.ylabel("Probability of H0")
+# # plt.ylim(0,5)
+# plt.savefig("images/Dave H0 Superimposed - GLADE.png", bbox_inches="tight", dpi=300)
+# plt.close(76)
+random_PS1 = random.sample(range(1500), 200)
+random_GLADE = random.sample(range(1600,2800), 200)
 
-plt.figure(76, figsize = (10,4))
-for i in range(len(H0_distributions))[1334:]:
-    plt.plot(H0_arr, H0_distributions[i])
-plt.title("All Galaxy H0 PDF - GLADE")
-plt.xlabel("Hubble Constant (km/s/Mpc)")
-plt.ylabel("Probability of H0")
-# plt.ylim(0,5)
-plt.savefig("images/Dave H0 Superimposed - GLADE.png", bbox_inches="tight", dpi=300)
-plt.close(76)
+max_height = -1
 
-plt.figure(76, figsize = (12,6))
-for i in range(len(H0_distributions)):
+plt.figure(76, figsize = (6,3))
+for i in np.append(random_PS1, random_GLADE):
     plt.plot(H0_arr, H0_distributions[i])
+    if max([H0_distributions[i][x] for x in range(len(H0_arr)) if 20<=H0_arr[x]<=150]) > max_height:
+        max_height = max(H0_distributions[i])
 plt.title(r"$H_{0}$ PDF per Each Galaxy")
 plt.xlabel(r"$H_{0}$ (km/s/Mpc)")
 plt.ylabel(r"Probability of $H_{0}$")
 plt.xlim(10,160)
-plt.ylim(0,0.35)
+plt.ylim(0,max_height*1.05)
 plt.grid(linestyle="--")
 plt.savefig("images/Dave H0 Superimposed.png", bbox_inches="tight", dpi=300)
 plt.close(76)
@@ -347,8 +353,8 @@ for i in range(len(H0_arr)):
 frac_measurement = 100*(H0_arr[interval_84] - H0_arr[interval_16])/(2*H0_arr[interval_50])
 
 print("End Running Prob: " + str(running_prob)) # 3.20695516451
-
-plt.figure(109)
+fig_size = 4
+plt.figure(109, figsize=(fig_size,fig_size*(3/4)))
 plt.plot(H0_arr[np.where(H0_arr<=150)], norm_final_h0[np.where(H0_arr<=150)], color = "blue")
 plt.axvline(x = H0_arr[interval_16], color = "red", linestyle = "dashed")
 plt.axvline(x = H0_arr[interval_50], color = "red", label = r"$H_{0}$ = " + "%0.2f$^{+%0.2f}_{-%0.2f}$ km/s/Mpc (%0.2f%%)" % (H0_arr[interval_50], H0_arr[interval_84]-H0_arr[interval_50],H0_arr[interval_50]-H0_arr[interval_16], frac_measurement))

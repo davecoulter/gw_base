@@ -13,6 +13,7 @@ import scipy.stats
 import random
 from astropy.cosmology import *
 import astropy.units as u
+import scipy
 
 import os
 
@@ -226,8 +227,8 @@ import os
 # ax.legend(loc="upper left")
 # plt.savefig("images/TESTING Redshift Histogram CSV.png", bbox_inches = "tight", dpi = 300)
 
-num = 100
-x = np.linspace(0, 10, num)
-y = np.array([5 for _ in range(num)])
-y = x**2
-print(np.trapz(y, x=x))
+x = np.linspace(0,10,1000)
+y = 3 + 5*x ** 3
+
+(a, b), pcov = scipy.optimize.curve_fit(f=lambda x, a, b: a*(x**3) + b, xdata=x, ydata=y)
+print(str(a) + "x^3 + " + str(b))

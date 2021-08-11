@@ -260,7 +260,8 @@ print("Time to Complete: " + str(datetime.now() - start))
 ### SKY MAP/HISTOGRAMS
 start = datetime.now()
 print("Start Plotting " + str(start.time()))
-fig = plt.figure(2)
+fig_size = 4
+fig = plt.figure(2, figsize=(fig_size,fig_size*(3/4)))
 ax = fig.add_subplot(111)
 # map = Basemap(width=2.5*(10**6),height=2.5*(10**6)*0.75,projection='lcc', resolution='c',lat_0=-28,lon_0=17.5)
 ra_coords = [9,26]

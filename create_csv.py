@@ -10,6 +10,7 @@ from mpl_toolkits.basemap import Basemap
 from ligo.skymap import distance
 from astropy.cosmology import *
 import astropy.units as u
+import scipy
 
 script_start = datetime.now()
 
@@ -304,7 +305,8 @@ print("Min Redshift All: " + str(min(np.append(np.append(GLADE_z, PS1_z), PS1e_z
 
 ### PLOTTING REDSHIFT HISTOGRAM
 print("Plotting Final Redshift Histogram")
-fig, ax = plt.subplots()
+fig_size = 4
+fig, ax = plt.subplots(figsize=(fig_size,fig_size*(3/4)))
 ax2 = ax.twinx()
 counts, bins, bars = ax.hist(PS1e_z[np.where(PS1e_z>=0.15)], bins=np.linspace(0,0.3,21), color = "red",label = "PS1 Photometric Redshift (Extended)", rwidth=0.9)
 ax.hist(np.append(GLADE_z,PS1_z), bins=bins, color = "aqua",label = "GLADE Spectroscopic Redshift", rwidth=0.9)
@@ -316,7 +318,20 @@ ax.set_xlabel("Redshift")
 ax.set_ylabel("Frequency of Galaxies")
 handles_2, labels_2 = ax2.get_legend_handles_labels()
 handles_1, labels_1 = ax.get_legend_handles_labels()
-ax.legend(handles=handles_1+handles_2, labels=labels_1+labels_2, loc = 2)
+# ax.legend(handles=handles_1+handles_2, labels=labels_1+labels_2, loc = 2)
+ax.annotate("PS1 (Extended)", xy=(0.18, 700),  xycoords='data',
+            xytext=(0.15, 850), textcoords='data',
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2),
+            horizontalalignment='right', verticalalignment='top',
+            )
+ax.annotate("GLADE(Spectroscopic)", xy=(0.125, 450),  xycoords='data',
+            xytext=(-0.005, 600), textcoords='data',
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2), horizontalalignment='left', verticalalignment='bottom',
+            )
+ax.annotate("PS1(Photometric)", xy=(0.1, 200),  xycoords='data',
+            xytext=(-0.005, 375), textcoords='data',
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2), horizontalalignment='left', verticalalignment='top',
+            )
 ax.grid(linestyle="--")
 plt.savefig("images/Redshift Histogram CSV.png", bbox_inches = "tight", dpi = 300)
 print("Finished Plotting Final Redshift Histogram")
@@ -334,9 +349,15 @@ GLADE_cdf = np.cumsum(GLADE_count)#/len(np.append(PS1a_z, GLADE_z))
 All_count, All_bins = np.histogram(np.append(PS1a_z, GLADE_z), bins = num)
 All_cdf = np.cumsum(All_count)#/len(np.append(PS1a_z, GLADE_z))
 
-total = np.sum(All_bins[1:] ** 3 + All_count[0])
+(a,b), pcov = scipy.optimize.curve_fit(f=lambda x, a, b: a*(x**3) + b, xdata=All_bins[1:], ydata=All_count)
+
+print("a = " + str(a) + "\nb = " + str(b))
+
+z_fit = a * All_bins[1:]**3 + b
+
+total = np.sum(z_fit)
 print("Total:",total)
-print("End Z^3 Value:",np.cumsum(All_bins[1:] ** 3)[-1]/total)
+print("End Z^3 Value:",np.cumsum(z_fit)[-1])
 
 PS1a_cdf = PS1a_cdf/total
 PS1_cdf = PS1_cdf/total
@@ -348,11 +369,11 @@ print("Cum sum division: " + str(np.sum(All_bins[1:] ** 3)))
 fig, ax = plt.subplots()
 # ax2 = ax.twinx()
 # ax2.plot(All_bins[1:], All_bins[1:]**3, color = "green", label = "Redshift Cubed", zorder = 1)
-ax.plot(PS1a_bins[1:], PS1a_cdf, color = "red", label="PS1 (Extended)", linewidth = 3, zorder= 2)
-ax.plot(All_bins[1:], All_cdf, color = "magenta", label = "All Galaxies", linewidth = 3, zorder = 3)
-ax.plot(GLADE_bins[1:], GLADE_cdf, color = "aqua", label = "GLADE", linewidth = 3, zorder = 4)
-ax.plot(PS1_bins[1:], PS1_cdf, color = "orange", label="PS1", linewidth = 3, zorder= 5)
-ax.plot(All_bins[1:], np.cumsum(All_bins[1:] ** 3)/total, color = "green", label="Other Z^3", linewidth = 1, zorder= 0)
+ax.plot(PS1a_bins[1:], PS1a_cdf, color = "red", label="PS1 (Extended)", zorder= 2)
+ax.plot(All_bins[1:], All_cdf, color = "magenta", label = "All Galaxies", zorder = 3)
+ax.plot(GLADE_bins[1:], GLADE_cdf, color = "aqua", label = "GLADE", zorder = 4)
+ax.plot(PS1_bins[1:], PS1_cdf, color = "orange", label="PS1",  zorder= 5)
+ax.plot(All_bins[1:], np.cumsum(z_fit)/total, color = "green", label="Redshift Cube Trend", zorder= 0)
 ax2.set_ylabel("Redshift Cubed")
 ax.set_xlabel("Redshift")
 ax.set_ylabel("Cumulative Fraction")

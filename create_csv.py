@@ -311,15 +311,16 @@ ax2 = ax.twinx()
 counts, bins, bars = ax.hist(PS1e_z[np.where(PS1e_z>=0.15)], bins=np.linspace(0,0.3,21), color = "red",label = "PS1 Photometric Redshift (Extended)", rwidth=0.9)
 ax.hist(np.append(GLADE_z,PS1_z), bins=bins, color = "aqua",label = "GLADE Spectroscopic Redshift", rwidth=0.9)
 ax.hist(PS1_z, bins=bins, color = "orange", label = "PS1 Photometric Redshift", rwidth = 0.9)
-ax2.plot(bins, bins**3, color = "green", label = "Redshift Cubed")
-ax2.set_ylabel("Redshift Cubed")
+ax2.plot(bins, bins**3, color = "green", label = "Redshift Cubed", linewidth = 4.0)
+# ax2.set_ylabel("Redshift Cubed")
+ax2.yaxis.set_visible(False)
 plt.title("Redshifts of Each Galaxy")
 ax.set_xlabel("Redshift")
 ax.set_ylabel("Frequency of Galaxies")
 handles_2, labels_2 = ax2.get_legend_handles_labels()
 handles_1, labels_1 = ax.get_legend_handles_labels()
 # ax.legend(handles=handles_1+handles_2, labels=labels_1+labels_2, loc = 2)
-ax.annotate("PS1 (Extended)", xy=(0.18, 700),  xycoords='data',
+ax.annotate("PS1(Extended)", xy=(0.18, 700),  xycoords='data',
             xytext=(0.15, 850), textcoords='data',
             arrowprops=dict(facecolor='black', shrink=0.05, width=2),
             horizontalalignment='right', verticalalignment='top',
@@ -328,8 +329,12 @@ ax.annotate("GLADE(Spectroscopic)", xy=(0.125, 450),  xycoords='data',
             xytext=(-0.005, 600), textcoords='data',
             arrowprops=dict(facecolor='black', shrink=0.05, width=2), horizontalalignment='left', verticalalignment='bottom',
             )
-ax.annotate("PS1(Photometric)", xy=(0.1, 200),  xycoords='data',
+ax.annotate("PS1(Photometric)", xy=(0.1, 185),  xycoords='data',
             xytext=(-0.005, 375), textcoords='data',
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2), horizontalalignment='left', verticalalignment='top',
+            )
+ax.annotate("Redshift Cubed", xy=(0.24, 430),  xycoords='data',
+            xytext=(.195, 180), textcoords='data',
             arrowprops=dict(facecolor='black', shrink=0.05, width=2), horizontalalignment='left', verticalalignment='top',
             )
 ax.grid(linestyle="--")
